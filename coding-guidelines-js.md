@@ -1,6 +1,6 @@
 # Coding guidelines
 
-**All scripts MUST pass [jshint](http://jshint.com/install/) on default settings with zero errors and zero warnings!!! These is a single exception, see below.**
+**All scripts MUST pass [jshint](http://jshint.com/install/) on default settings with zero errors and zero warnings!!! There is a single exception, see below.**
 
 ##Style
 
