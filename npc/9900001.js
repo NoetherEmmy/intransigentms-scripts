@@ -23,6 +23,7 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
+    var party, mapId, i;
     if (p.getMapId() === startingMap) {
         cm.dispose();
         return;
@@ -40,7 +41,6 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    var party, mapId, i;
     if (p.isScpqFlagged() || p.isGM()) {
         switch (status) {
             case 0:
