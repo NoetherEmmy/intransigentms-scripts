@@ -446,7 +446,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     cm.gainItem(4001126, -1 * leavestotrade);
                     cm.gainItem(5220000, Math.round(leavestotrade / gachratio));
                     cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / gachratio) + "#k gachapon " + ticketplural + ".");
@@ -459,7 +459,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     p.setVotePoints(vp - selection);
                     cm.gainItem(2340000, selection * wsratio);
                     cm.sendOk("Thanks! I've given you #b" + (selection * wsratio) + "#k White Scroll" + (selection * wsratio > 1 ? "s" : "") + ".");
@@ -476,7 +476,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     cm.gainItem(4001126, -1 * leavestotrade);
                     cm.gainItem(2012008, Math.round(leavestotrade / appleratio));
                     cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / appleratio) + "#k Unripe Onyx " + appleplural + ".");
@@ -525,7 +525,7 @@ function action(mode, type, selection) {
                                     })
                                     .forEach(function(id) { casheqs.push(id); });
                             }
-                            
+
                             cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + getCashList());
                             break;
                     }
@@ -536,7 +536,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     p.setVotePoints(vp - selection);
                     cm.gainItem(5050000, selection * apratio);
                     cm.sendOk("Thanks! I've given you #b" + (selection * apratio) + "#k AP Resets.");
@@ -549,7 +549,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     p.setVotePoints(vp - selection);
                     cm.gainItem(2049100, Math.round(selection * chaosratiocs / chaosratiovp));
                     cm.sendOk("Thanks! I've given you #b" + Math.round(selection * chaosratiocs / chaosratiovp) + "#k Chaos Scrolls.");
@@ -562,7 +562,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     p.setVotePoints(vp - selection);
                     cm.gainItem(5220000, selection * gachratiovp);
                     cm.sendOk("Thanks! I've given you\r\n\r\n#i5220000#   #bx" + (selection * gachratiovp) + "#k.");
@@ -575,7 +575,7 @@ function action(mode, type, selection) {
                         cm.dispose();
                         return;
                     }
-                    
+
                     p.setVotePoints(vp - selection * cogratio);
                     cm.gainItem(2049122, selection);
                     cm.sendOk("Thanks! I've given you #b" + selection + "#k Chaos Scrolls of Goodness.");
@@ -649,7 +649,7 @@ function action(mode, type, selection) {
                                 cashpage = 0;
                                 cashlist = getCashList();
                             }
-                            
+
                             cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + cashlist);
                             break;
                         case 1:  // Prev page
@@ -660,7 +660,7 @@ function action(mode, type, selection) {
                                 cashpage = Math.floor((casheqs.length - 1) / (5 * linesperpage));
                                 cashlist = getCashList();
                             }
-                            
+
                             cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + cashlist);
                             break;
                         case 2:  // Exit; this should not trigger since it's caught way up there^^^

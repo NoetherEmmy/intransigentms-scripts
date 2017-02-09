@@ -3,6 +3,31 @@
 *.pyc
 *.txt
 
+# Hidden shit #
+*.bak
+.*
+!/.gitignore
+
+# Backups #
+event/lolcastle backup/**
+npc/script backups/**
+npc/2083002.js
+npc/9100100.js
+npc/9100101.js
+npc/9100102.js
+npc/9100103.js
+npc/9100104.js
+npc/9100105.js
+npc/9100106.js
+npc/9100107.js
+npc/9100108.js
+npc/9100109.js
+npc/9100110.js
+npc/9100111.js
+npc/9100117.js
+npc/newgach.js
+npc/oldgach.js
+
 # Java #
 *.java
 *.class

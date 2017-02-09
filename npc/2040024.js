@@ -36,7 +36,7 @@ function action(mode, type, selection) {
             cm.dispose();
             return;
         }
-    } else if (status === 1) {
+    } else if (status === 1 && cm.itemQuantity(4001020) >= 1) {
         cm.gainItem(4001020, -1);
         cm.warp(221022900, 3);
         cm.dispose();

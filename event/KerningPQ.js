@@ -31,7 +31,7 @@ function monsterValue(eim, mobId) { // Killed monster
 
 function setup() { // Invoked from "EventManager.startInstance()"
     var eim = em.newInstance("KerningPQ"); // Adds a new instance and returns EventInstanceManager
-    var eventTime = 30 * (1000 * 60); // 30 mins
+    var eventTime = 30 * 1000 * 60; // 30 mins
     var firstPortal = eim.getMapInstance(103000800).getPortal("next00");
     firstPortal.setScriptName("kpq0");
     em.schedule("timeOut", eim, eventTime); // Invokes "timeOut" in how ever many seconds
@@ -45,6 +45,7 @@ function playerEntry(eim, player) { // This gets looped for every player in the 
 }
 
 function playerDead(eim, player) {
+    eim.unregisterPlayer(player);
 }
 
 function playerRevive(eim, player) { // Player presses OK on the death pop up
