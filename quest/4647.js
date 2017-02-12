@@ -25,7 +25,7 @@ function end(mode, type, selection) {
         }
         qm.sendNext("Boy, that's the finest god damn pet snack I've ever laid m'eyes on.");
     } else if (status === 1) {
-        qm.sendNext("Good, hard work.\r\n\r\nHere... for your efforts:\r\n\r\n\t#bMesos: #e90,000#n#k\r\n\t#rExperience: #e17,500#n#k\r\n\t#dFame: #e3#n#k");
+        qm.sendNext("Good, hard work.\r\n\r\nHere... for your efforts:\r\n\r\n\t#bMesos: #e90,000#n#k\r\n\t#rExperience: #e1,700#n#k\r\n\t#dFame: #e3#n#k");
     } else if (status === 2) {
         qm.forceCompleteQuest();
         qm.gainExp(1700 * qm.getC().getChannelServer().getExpRate() * qm.getPlayer().getAbsoluteXp());

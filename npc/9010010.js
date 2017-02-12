@@ -65,7 +65,11 @@ function start() {
         p.setDonator(1);
     }
     */
-    if ("" + p.getName() === "") {
+    if (
+        "" + p.getName() === "Onyx" ||
+        "" + p.getName() === "Alecks" ||
+        "" + p.getName() === "Shykitsu" ||
+        "" + p.getName() === "Skybank") {
         p.setDonator(1);
     }
     
@@ -100,8 +104,8 @@ function action(mode, type, selection) {
         }
     } else if (status === 1) {
         if (selection === 0) {
-            cm.sendOk("You're all set!");
             cm.modifyNx(900000 - cm.getNx(1));
+            cm.sendOk("You're all set!");
             cm.dispose();
             return;
         } else if (selection === 1) {

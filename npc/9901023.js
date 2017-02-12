@@ -323,10 +323,10 @@ function action(mode, type, selection) {
                             return;
                     }
                     var apPerLv = 5;
-                    var margin = p.getLevel() - 20;
+                    var margin = Math.floor(p.getLevel() - 20 / 2);
                     var totalRoll = stat + JavaMath.random() * margin;
                     var upperThresh = p.getLevel() * apPerLv + margin;
-                    var midThresh = p.getLevel() * apPerLv;
+                    var midThresh = p.getLevel() * apPerLv - margin;
 
                     if (totalRoll >= upperThresh) {
                         var buff = getBuff();
