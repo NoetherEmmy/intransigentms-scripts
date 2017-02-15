@@ -39,9 +39,9 @@ function action(mode, type, selection) {
     switch (status) {
         case 0:
             var msg = "#eyou walk near this portal and feel a chill in your bones from the sheer bizarreness of the machine and the high-pitched whine it emits to those who are close enough#n\r\n\r\n#eyou are feeling particularly reckless today, and decide to fiddle around with the panel on the side#n\r\n\r\n#eyou find a small inscription under one of the hinged protective covers:#n\r\n\r\n";
-            msg += timelines.map(function(timeline) {
+            msg += timelines.map(function(timeline, index) {
                 return "#L" +
-                       timeline.mapId +
+                       index +
                        "#" +
                        timeline.name +
                        "  |  Required level: " +
@@ -53,11 +53,17 @@ function action(mode, type, selection) {
             break;
         case 1:
             selection_ = selection;
-            cm.sendSimple("#eyou press down gingerly upon the large red button on the side of the machine, and to your brief terror, the machine stops its incessant humming and falls almost silent#n\r\n\r\n#esuddenly, the recepticle of the machine begins to change appearance; you think it's probably working#n\r\n\r\n#L0#(enter the recepticle)#l\r\n#L1#(walk away from the giant machine)#l");
+            if (p.getLevel() >= timelines[selection_].levelReq) {
+                cm.sendSimple("#eyou press down gingerly upon the large red button on the side of the machine, and to your brief terror, the machine stops its incessant humming and falls almost silent#n\r\n\r\n#esuddenly, the recepticle of the machine begins to change appearance; you think it's probably working#n\r\n\r\n#L0#(enter the recepticle)#l\r\n#L1#(walk away from the giant machine)#l");
+            } else {
+                cm.sendOk("#eyou hastily push down the large red button on the side of the machine and hop into its recepticle, but the machine senses your haste and immaturity and rejects you outright, hurling you backwards onto the ground#n");
+                cm.dispose();
+                return;
+            }
             break;
         case 2:
             if (selection === 0) {
-                cm.warp(selection_);
+                cm.warp(timelines[selection_].mapId);
             }
             cm.dispose();
             return;
