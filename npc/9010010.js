@@ -1,89 +1,39 @@
-/**
+/*
  * @Name         Cassandra
  * @NPC:         9010010
  * @Purpose:     Donator benefits
  * @Map:         Many
  */
 
-var MapleDisease = Java.type("net.sf.odinms.client.MapleDisease");
-var TimerManager = Java.type("net.sf.odinms.server.TimerManager");
+var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
 
-var status;
-var chairs =
-[
-    3010000, /* The Relaxer */
-    3010001, /* Sky-blue Wooden Chair */
-    3010002, /* Green Chair */
-    3010003, /* Red Chair */
-    3010004, /* The Yellow Relaxer */
-    3010005, /* The Red Relaxer */
-    3010006, /* Yellow Chair */
-    3010007, /* Pink Seal Cushion */
-    3010008, /* Blue Seal Cushion */
-    3010009, /* A chair of love */
-    3010010, /* White Seal Cushion */
-    3010011, /* Amorian Relaxer */
-    3010012, /* Warrior Throne */
-    3010013, /* Beach Chair */
-    3010014, /* Moon Star Chair */
-    3010015, /* The Red Relaxer */
-    3010016, /* Grey Seal Cushion */
-    3010017, /* Gold Seal Cushion */
-    3010018, /* Palm Tree Beach Chair */
-    3010019, /* Kadomastsu */
-    3010022, /* White Polar Bear Chair */
-    3010023, /* Brown Polar Bear Chair */
-    3010024, /* Pink Teddy Chair */
-    3010025, /* Under the Maple Tree... */
-    3010040, /* The Stirge Seat */
-    3010041, /* Skull Throne */
-    3011000  /* Fishing Chair */
-];
-var addedchairs =
-[
-    3010036, 3010021, 3010043, 3010045,
-    3010046, 3010047, 3010049, 3010052,
-    3010055, 3010057, 3010058, 3010060,
-    3010061, 3010062, 3010063, 3010064,
-    3010065, 3010066, 3010067, 3010068,
-    3010072, 3010075, 3010080, 3010092,
-    3010095, 3010097, 3010099, 3010108,
-    3010109, 3010110, 3010111, 3010113,
-    3010114, 3010118, 3010119, 3010126,
-    3010127, 3010128, 3010129, 3010130,
-    3010131, 3010134, 3010137, 3010139,
-    3010152, 3010155, 3010156, 3010161,
-    3010170, 3010172, 3011000, 3012005,
-    3012010
-];
+var status = 0;
+var chairsPerPage = 40;
+var chairs, chairCount, pageSelection;
 
 function start() {
     var p = cm.getPlayer();
-    
-    /*
-    if (["Skykitsune", "Skykit", "Skykitsu"].indexOf("" + p.getName()) !== -1) {
+
+    if ("" + p.getName() === "Xenon") {
         p.setDonator(1);
     }
-    */
-    if (
-        "" + p.getName() === "Onyx" ||
-        "" + p.getName() === "Alecks" ||
-        "" + p.getName() === "Shykitsu" ||
-        "" + p.getName() === "Skybank") {
-        p.setDonator(1);
-    }
-    
+
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
+    var p = cm.getPlayer();
+    var i;
     if (mode === -1) {
         cm.dispose();
         return;
-    } else if (mode === 0 && status === 0) {
+    } else if (mode === 0 && (status === 0 || type === 4 || type === 12)) {
         cm.dispose();
         return;
+    } else if (status === 2 && selection === 0) {
+        status = 0;
+        selection = 1;
     }
     if (mode === 1) {
         status++;
@@ -104,25 +54,32 @@ function action(mode, type, selection) {
         }
     } else if (status === 1) {
         if (selection === 0) {
-            cm.modifyNx(900000 - cm.getNx(1));
             cm.sendOk("You're all set!");
+            cm.modifyNx(900000 - cm.getNx(1));
             cm.dispose();
             return;
         } else if (selection === 1) {
-            var chairlist = "";
-            var i;
-            for (i = 0; i < chairs.length; ++i) {
-                chairlist += "#L" + chairs[i] + "##i" + chairs[i] + "##l\r\n";
+            chairs = MapleItemInformationProvider.getInstance().getChairIds();
+            chairCount = chairs.size();
+            var pageCount = Math.ceil(chairCount / chairsPerPage);
+            var pages = "Select a page to choose from:\r\n";
+            for (i = 0; i < pageCount; ++i) {
+                pages += "\r\n#L" + i + "#Page " + (i + 1) + "#l";
             }
-            for (i = 0; i < addedchairs.length; ++i) {
-                chairlist += "#L" + addedchairs[i] + "##i" + addedchairs[i] + "##l\r\n";
-            }
-            cm.sendSimple("Pick a chair of your liking:\r\n\r\n" + chairlist);
+            cm.sendSimple(pages);
         }
     } else if (status === 2) {
-        cm.sendOk("Here you go:\r\n\r\n#i" + selection + "#");
+        if (selection >= 0) {
+            pageSelection = selection;
+        }
+        var chairList = "";
+        var start = chairsPerPage * pageSelection;
+        for (i = start; i < start + chairsPerPage && i < chairCount; ++i) {
+            chairList += "\r\n#L" + chairs.get(i) + "##i" + chairs.get(i) + "##l";
+        }
+        cm.sendSimple("Pick a chair of your liking (page #b" + Math.floor(i / 40) + "#k):\r\n\r\n#L0#Go back to the page selection.#l" + chairList);
+    } else if (status === 3) {
+        cm.sendPrev("Here you go:\r\n\r\n#i" + selection + "#");
         cm.gainItem(selection, 1);
-        cm.dispose();
-        return;
     }
 }

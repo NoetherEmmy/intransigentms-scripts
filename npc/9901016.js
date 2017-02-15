@@ -1,13 +1,13 @@
 /*
  * Woman in denim hood
- * Lilin's Manor: Gala Main Room
+ * Lilin's Manor | Gala Main Room
  *
  * ID: 9901016
  */
 
 var JavaMath = Java.type("java.lang.Math");
 
-var status = 0;
+var status;
 var combat, fakeName, autographed, triedAutograph;
 
 function start() {
@@ -27,7 +27,7 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    mode === 1 ? ++status : --status;
+    status += mode === 1 ? 1 : -1;
     switch (status) {
         case 0:
             if (!combat) {
