@@ -5,6 +5,8 @@
  * Death penalty removal NPC
  */
 
+var MapleCharacter = Java.type("net.sf.odinms.client.MapleCharacter");
+
 var status;
 var deathcost = 5000000;
 
@@ -15,6 +17,14 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
+    /*
+    if (p.getName() + "" === "Noether") {
+        p.incrementDeathPenaltyAndRecalc(5);
+        p.dropMessage("5");
+        cm.dispose();
+        return;
+    }
+    */
     if (mode === -1) {
         cm.dispose();
         return;
@@ -41,7 +51,7 @@ function action(mode, type, selection) {
         cm.sendSimple(normal + s + "\r\n\t\t\t\t #L1#(walk away from the bed)#l");
     } else if (status === 1) {
         if (selection === 0) {
-            cm.sendYesNo("\t\t\t\t  #eas you approach the bed to lay down, the bed\r\n\t\t\t\t  rudely sticks a mechanical hand out at you#n\r\n\r\n\t\t\t\t #eyou glance over at the side of the headboard,\r\n\t\t\t\t  where it reads:#n\r\n\r\n\t\t\t\t\t\t#d" + deathcost + " MESOS PER REST#k\r\n\r\n\t\t\t\t Are you willing to pay?");
+            cm.sendYesNo("\t\t\t\t  #eas you approach the bed to lay down, the bed\r\n\t\t\t\t  rudely sticks a mechanical hand out at you#n\r\n\r\n\t\t\t\t #eyou glance over at the side of the headboard,\r\n\t\t\t\t  where it reads:#n\r\n\r\n\t\t\t\t\t\t#d" + MapleCharacter.makeNumberReadable(deathcost) + " MESOS PER REST#k\r\n\r\n\t\t\t\t Are you willing to pay?");
         } else if (selection === 1) {
             cm.dispose();
             return;
@@ -71,7 +81,7 @@ function action(mode, type, selection) {
             cm.dispose();
             return;
         } else {
-            cm.sendOk("It looks like you don't have enough mesos. It will cost you at least " + deathcost + " mesos for this treatment.");
+            cm.sendOk("It looks like you don't have enough mesos. It will cost you at least " + MapleCharacter.makeNumberReadable(deathcost) + " mesos for this treatment.");
             cm.dispose();
             return;
         }

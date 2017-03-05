@@ -20,7 +20,8 @@ var PortalScriptManager    = Java.type("net.sf.odinms.scripting.portal.PortalScr
 //var Collections               = Java.type("java.util.Collections");
 //var MonsterStatus             = Java.type("net.sf.odinms.client.status.MonsterStatus");
 //var MapleInventoryManipulator = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
-var MapleInventoryType        = Java.type("net.sf.odinms.client.MapleInventoryType");
+var MapleInventoryType     = Java.type("net.sf.odinms.client.MapleInventoryType");
+var MaplePacketCreator     = Java.type("net.sf.odinms.tools.MaplePacketCreator");
 
 var status;
 var troubleshot = false;
@@ -48,6 +49,7 @@ var cashdisposal = false;
 var unclaimed = false;
 
 function start() {
+    //cm.getClient().getSession().write(MaplePacketCreator.setNPCScriptable(2081400, "Hellin"));
     status = -1;
     action(1, 0, 0);
 }
@@ -55,22 +57,23 @@ function start() {
 function action(mode, type, selection) {
     var p = cm.getPlayer();
     var cashequiplist;
+
     /*
-    if ("" + p.getName() === "Branden") {
-        var poleArmMastery = SkillFactory.getSkill(1300001);
-        var poleArmBooster = SkillFactory.getSkill(1301005);
-        var paml = p.getSkillLevel(poleArmMastery);
-        var pabl = p.getSkillLevel(poleArmBooster);
-        if (paml >= 1 && pabl >= 1) {
-            p.changeSkillLevel(poleArmMastery, 0, 30);
-            p.changeSkillLevel(poleArmBooster, 0, 30);
-            p.setRemainingSp(p.getRemainingSp() + paml + pabl);
-            p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
+    if ("" + p.getName() === "") {
+        var energyBlast = SkillFactory.getSkill(5111002);
+        var flashJump = SkillFactory.getSkill(4111006);
+        var ebl = p.getSkillLevel(energyBlast);
+        var fjl = p.getSkillLevel(flashJump);
+        if (ebl >= 20 && fjl === 0) {
+            p.changeSkillLevel(energyBlast, ebl - 20, 30);
+            p.changeSkillLevel(flashJump, 20, 20);
+            //p.setRemainingSp(p.getRemainingSp() + paml);
+            //p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
             cm.sendOk("gud 2 go fam");
             cm.dispose();
             return;
         } else {
-            p.dropMessage("It doesn't look like you have Polearm Booster and Polearm Mastery.");
+            p.dropMessage("It doesn't look like you have 0 levels in Flash Jump and 20+ in Energy Blast.");
             cm.dispose();
             return;
         }
@@ -105,7 +108,7 @@ function action(mode, type, selection) {
     if (status === 0 || status === 1) {
         status = 1;
         if (selection !== 1) {
-            cm.sendSimple("Hey there, I'm the #dIntransigentMS Administrator#k! What would you like to ask about?\r\n\r\n#L0#I want to speak with Bomack about experience and death.#l\r\n#L1#I want to speak with Amos about quests, NX/voting, and changing my look.#l\r\n#L2#I want to speak with Karcasa about FM shops, defensive abilities, and fighting monsters.#l\r\n#L3#What commands are there in this game?#l\r\n#L4#I need help troubleshooting.#l\r\n#L6#I need to know the location or stats of a mob, NPC, or item.#l\r\n#L5#I need to ask/tell a GM something.#l\r\n#L10#I'd like to redeem an EXP boost.#l\r\n#L7#I'd like to view how much NX I have on my account.#l\r\n#L8#I'd like to use a Magic Seed to teleport between Ellinia and Leafre.#l\r\n#L11#I'd like to redeem my Christmas Present for a VIP item of my choice.#l\r\n#L9#I'd like to add points into a skill that won't let me add in points even though my master level for the skill is high enough.#l\r\n#L12#I need to claim item(s) I lost because my inventory was full.#l\r\n#L14#I want to get rid of some of my NX items.#l\r\n#L13#I need to be fixed.#l");
+            cm.sendSimple("Hey there, I'm the #dIntransigentMS Administrator#k! What would you like to ask about?\r\n\r\n#L0#I want to speak with Bomack about experience and death.#l\r\n#L1#I want to speak with Amos about quests, NX/voting, and changing my look.#l\r\n#L2#I want to speak with Karcasa about FM shops, defensive abilities, and fighting monsters.#l\r\n#L3#What commands are there in this game?#l\r\n#L4#I need help troubleshooting.#l\r\n#L6#I need to know the location or stats of a mob, NPC, or item.#l\r\n#L5#I need to ask/tell a GM something.#l\r\n#L10#I'd like to redeem an EXP boost.#l\r\n#L7#I'd like to view how much NX I have on my account.#l\r\n#L11#I'd like to redeem my Christmas Present for a VIP item of my choice.#l\r\n#L9#I'd like to add points into a skill that won't let me add in points even though my master level for the skill is high enough.#l\r\n#L12#I need to claim item(s) I lost because my inventory was full.#l\r\n#L14#I want to get rid of some of my NX items.#l"); //\r\n#L13#I need to be fixed.#l
         } else {
             cm.dispose();
             return;
@@ -144,6 +147,7 @@ function action(mode, type, selection) {
                 case 7:
                     cm.sendPrev("Paypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
                     break;
+                /*
                 case 8:
                     if (cm.itemQuantity(4031346) >= 1) {
                         if (Math.floor(p.getMapId() / 1000000) === 101) {
@@ -163,6 +167,7 @@ function action(mode, type, selection) {
                         cm.sendPrev("It doesn't look like you have a #bMagic Seed#k.");
                     }
                     break;
+                */
                 case 9:
                     var s = "";
                     if (p.getSkillLevel(taunt) < 30 && p.getJob().getId() === 412) {

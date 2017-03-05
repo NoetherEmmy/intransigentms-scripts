@@ -200,179 +200,178 @@ function action(mode, type, selection) {
     if (mode < 0) {
         cm.dispose();
         return;
+    }
+    if (mode === 1) {
+        status++;
     } else {
-        if (mode === 1) {
-            status++;
-        } else {
-            status--;
-        }
-        if (cm.getPlayer().getLevel() < 120) {
-            cm.sendOk("Come back to me when you are much stronger.");
-            cm.dispose();
-            return;
-        } else if (cm.getPlayer().getJob().getId() % 10 !== 2) {
-            cm.sendOk("If you are looking to make your fourth job advancement, please talk to your instructor in #bVictoria Island#k.");
-            cm.dispose();
-            return;
-        }
-        if (!cm.onQuest()) {
-            if (status === 0) {
-                if (mode === 0) {
-                    cm.sendOk("Bye, then.");
-                    cm.dispose();
-                    return;
-                } else if (contains(ids, idon)) {
-                    rewards = skills[idon - ids[0]];
-                    var hasquest = false;
-                    reward = [];
-                    for (i = 0; i < rewards.length; ++i) {
-                        if (Math.floor(rewards[i][0] / 10000) === cm.getPlayer().getJob().getId()) {
-                            reward = rewards[i];
-                            hasquest = true;
-                            break;
-                        }
-                    }
-                    if (reward.length > 0) {
-                        if (cm.getPlayer().getMasterLevelById(reward[0]) >= reward[1]) {
-                            hasquest = false;
-                        }
-                    }
-                    if (hasquest) {
-                        cm.sendSimple(cm.selectQuest(idon, "I can train you to cripple your enemies, and make them fall prey to your assaults."));
-                    } else {
-                        cm.sendOk("Your training with me is finished. You are an apprentice to no one now.");
-                        cm.dispose();
-                        return;
-                    }
-                } else {
-                    cm.sendOk("#enods#n");
-                    cm.dispose();
-                    return;
-                }
-            } else if (status === 1) {
-                if (mode === 0) {
-                    cm.sendOk("Fine.");
-                    cm.dispose();
-                    return;
-                } else {
-                    cm.sendAcceptDecline(cm.getPlayer().getCQuest().loadInfo(idon));
-                }
-            } else if (status === 2) {
-                if (mode === 0) {
-                    cm.sendOk("Ok.");
-                    cm.dispose();
-                    return;
-                }
-                cm.startCQuest(idon);
+        status--;
+    }
+    if (cm.getPlayer().getLevel() < 120) {
+        cm.sendOk("Come back to me when you are much stronger.");
+        cm.dispose();
+        return;
+    } else if (cm.getPlayer().getJob().getId() % 10 !== 2) {
+        cm.sendOk("If you are looking to make your fourth job advancement, please talk to your instructor in #bVictoria Island#k.");
+        cm.dispose();
+        return;
+    }
+    if (!cm.onQuest()) {
+        if (status === 0) {
+            if (mode === 0) {
+                cm.sendOk("Bye, then.");
                 cm.dispose();
                 return;
-            }
-        } else if (!cm.onQuest(idon)) {
-            if (cm.onQuest(7000)) {
-                if (status === 0) {
-                    if (mode < 1) {
-                        cm.dispose();
-                        return;
-                    }
-                    cm.sendOk("Gritto sent you, didn't he?\r\n\r\nWell, alrighty then. I suppose you need some \"mental training\" or whatever.");
-                } else if (status === 1) {
-                    if (mode < 1) {
-                        cm.dispose();
-                        return;
-                    }
-                    cm.sendYesNo("#esigh#n\r\n\r\nWell, OK. You're gonna have to take a bit of a test. Do you think you're ready?");
-                } else if (status >= 2) {
-                    if (questionnumber === 0) {
-                        for (i = 0; i < questionkeys.length; ++i) {
-                            questionorder.push(i);
-                        }
-                        questionorder = fisherYates(questionorder);
-                    } else if (questionnumber < questionorder.length) {
-                        if (selection !== 0) {
-                            cm.sendOk("Ah, nope. That's not quite right.");
-                            cm.dispose();
-                            return;
-                        }
-                    } else {
-                        if (selection !== 0) {
-                            cm.sendOk("Ah, nope. That's not quite right.");
-                            cm.dispose();
-                            return;
-                        } else {
-                            cm.sendOk("Oh, wow. You got them all right.\r\n\r\nHere, here's the #bPresent#k I promised you.");
-                            cm.gainItem(present, 1);
-                            cm.dispose();
-                            return;
-                        }
-                    }
-                    
-                    var answerlist = [];
-                    var answerstring = "";
-                    for (i = 0; i < questions[questionkeys[questionorder[questionnumber]]].length; ++i) {
-                        answerlist.push("#L" + String(i) + "#" + questions[questionkeys[questionorder[questionnumber]]][i] + "#l");
-                    }
-                    answerlist = fisherYates(answerlist);
-                    for (i = 0; i < answerlist.length; ++i) {
-                        answerstring += answerlist[i];
-                        answerstring += "\r\n";
-                    }
-                    
-                    cm.sendSimple("Alright. Question number " + String(questionnumber + 1) + "...\r\n\r\n" + questionkeys[questionorder[questionnumber]] + "\r\n\r\n" + answerstring);
-                    questionnumber++;
-                }
-            } else {
-                if (status === 0) {
-                    cm.sendYesNo(cm.randomText(4) + cm.getPlayer().getCQuest().getTitle() + cm.randomText(5));
-                } else if (status === 1) {
-                    cm.startCQuest(0);
-                    cm.dispose();
-                    return;
-                }
-            }
-        } else if (cm.onQuest(idon) && cm.canComplete()) {
-            if (status === 0) {
-                cm.sendSimple(cm.selectQuest(idon, "Well what have we here?")); 
-            } else if (status === 1) {
+            } else if (contains(ids, idon)) {
                 rewards = skills[idon - ids[0]];
+                var hasquest = false;
+                reward = [];
                 for (i = 0; i < rewards.length; ++i) {
                     if (Math.floor(rewards[i][0] / 10000) === cm.getPlayer().getJob().getId()) {
                         reward = rewards[i];
+                        hasquest = true;
                         break;
                     }
                 }
-                if (cm.getPlayer().getMasterLevelById(reward[0]) >= reward[1] - 10) {
-                    qualifies = true;
-                } else {
-                    qualifies = false;
+                if (reward.length > 0) {
+                    if (cm.getPlayer().getMasterLevelById(reward[0]) >= reward[1]) {
+                        hasquest = false;
+                    }
                 }
-                if (qualifies) {
-                    cm.sendOk(cm.showReward("Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + String(reward[1]) + "#k#n"));
+                if (hasquest) {
+                    cm.sendSimple(cm.selectQuest(idon, "I can train you to cripple your enemies, and make them fall prey to your assaults."));
                 } else {
-                    cm.sendOk("You don't have the requisite skill master levels to complete this quest! Come back to me when you've got a master level of at least #b" + String(reward[1] - 10) + "#k in the #r" + cm.getSkillNameById(reward[0]) + "#k skill.");
+                    cm.sendOk("Your training with me is finished. You are an apprentice to no one now.");
                     cm.dispose();
                     return;
                 }
-            } else if (status === 2) {
-                cm.getPlayer().setMasterLevel(reward[0], reward[1]);
-                cm.fourthRewardPlayer(0, 0);
-                cm.getPlayer().sendHint(cm.randomText(6));
+            } else {
+                cm.sendOk("#enods#n");
                 cm.dispose();
                 return;
             }
-        } else if (cm.onQuest(idon) && !cm.canComplete()) {
-            if (status === 0) {
-                if (mode === 0) {
-                    cm.dispose();
-                    return;
-                } else {
-                    cm.sendSimple(cm.selectQuest(idon, "I can make you... so much more powerful."));
-                }
-            } else if (status === 1) {
-                cm.sendOk("This is what I need from you:\r\n\r\n" + cm.getPlayer().getCQuest().loadInfo(idon));
-            } else if (status === 2) {
-                cm.dispose(); 
+        } else if (status === 1) {
+            if (mode === 0) {
+                cm.sendOk("Fine.");
+                cm.dispose();
+                return;
+            } else {
+                cm.sendAcceptDecline(cm.getPlayer().getCQuest().loadInfo(idon));
+            }
+        } else if (status === 2) {
+            if (mode === 0) {
+                cm.sendOk("Ok.");
+                cm.dispose();
                 return;
             }
+            cm.startCQuest(idon);
+            cm.dispose();
+            return;
+        }
+    } else if (!cm.onQuest(idon)) {
+        if (cm.onQuest(7000)) {
+            if (status === 0) {
+                if (mode < 1) {
+                    cm.dispose();
+                    return;
+                }
+                cm.sendOk("Gritto sent you, didn't he?\r\n\r\nWell, alrighty then. I suppose you need some \"mental training\" or whatever.");
+            } else if (status === 1) {
+                if (mode < 1) {
+                    cm.dispose();
+                    return;
+                }
+                cm.sendYesNo("#esigh#n\r\n\r\nWell, OK. You're gonna have to take a bit of a test. Do you think you're ready?");
+            } else if (status >= 2) {
+                if (questionnumber === 0) {
+                    for (i = 0; i < questionkeys.length; ++i) {
+                        questionorder.push(i);
+                    }
+                    questionorder = fisherYates(questionorder);
+                } else if (questionnumber < questionorder.length) {
+                    if (selection !== 0) {
+                        cm.sendOk("Ah, nope. That's not quite right.");
+                        cm.dispose();
+                        return;
+                    }
+                } else {
+                    if (selection !== 0) {
+                        cm.sendOk("Ah, nope. That's not quite right.");
+                        cm.dispose();
+                        return;
+                    } else {
+                        cm.sendOk("Oh, wow. You got them all right.\r\n\r\nHere, here's the #bPresent#k I promised you.");
+                        cm.gainItem(present, 1);
+                        cm.dispose();
+                        return;
+                    }
+                }
+                
+                var answerlist = [];
+                var answerstring = "";
+                for (i = 0; i < questions[questionkeys[questionorder[questionnumber]]].length; ++i) {
+                    answerlist.push("#L" + i + "#" + questions[questionkeys[questionorder[questionnumber]]][i] + "#l");
+                }
+                answerlist = fisherYates(answerlist);
+                for (i = 0; i < answerlist.length; ++i) {
+                    answerstring += answerlist[i];
+                    answerstring += "\r\n";
+                }
+                
+                cm.sendSimple("Alright. Question number " + (questionnumber + 1) + "...\r\n\r\n" + questionkeys[questionorder[questionnumber]] + "\r\n\r\n" + answerstring);
+                questionnumber++;
+            }
+        } else {
+            if (status === 0) {
+                cm.sendYesNo(cm.randomText(4) + cm.getPlayer().getCQuest().getTitle() + cm.randomText(5));
+            } else if (status === 1) {
+                cm.startCQuest(0);
+                cm.dispose();
+                return;
+            }
+        }
+    } else if (cm.onQuest(idon) && cm.canComplete()) {
+        if (status === 0) {
+            cm.sendSimple(cm.selectQuest(idon, "Well what have we here?")); 
+        } else if (status === 1) {
+            rewards = skills[idon - ids[0]];
+            for (i = 0; i < rewards.length; ++i) {
+                if (Math.floor(rewards[i][0] / 10000) === cm.getPlayer().getJob().getId()) {
+                    reward = rewards[i];
+                    break;
+                }
+            }
+            if (cm.getPlayer().getMasterLevelById(reward[0]) >= reward[1] - 10) {
+                qualifies = true;
+            } else {
+                qualifies = false;
+            }
+            if (qualifies) {
+                cm.sendOk(cm.showReward("Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n"));
+            } else {
+                cm.sendOk("You don't have the requisite skill master levels to complete this quest! Come back to me when you've got a master level of at least #b" + (reward[1] - 10) + "#k in the #r" + cm.getSkillNameById(reward[0]) + "#k skill.");
+                cm.dispose();
+                return;
+            }
+        } else if (status === 2) {
+            cm.getPlayer().setMasterLevel(reward[0], reward[1]);
+            cm.fourthRewardPlayer(0, 0);
+            cm.getPlayer().sendHint(cm.randomText(6));
+            cm.dispose();
+            return;
+        }
+    } else if (cm.onQuest(idon) && !cm.canComplete()) {
+        if (status === 0) {
+            if (mode === 0) {
+                cm.dispose();
+                return;
+            } else {
+                cm.sendSimple(cm.selectQuest(idon, "I can make you... so much more powerful."));
+            }
+        } else if (status === 1) {
+            cm.sendOk("This is what I need from you:\r\n\r\n" + cm.getPlayer().getCQuest().loadInfo(idon));
+        } else if (status === 2) {
+            cm.dispose(); 
+            return;
         }
     }
 }

@@ -147,6 +147,7 @@ function start() {
         p.setRemainingAp(p.getRemainingAp() + 100);
         p.updateSingleStat(MapleStat.AVAILABLEAP, p.getRemainingAp());
         */
+
         canusecody = true;
     }
 

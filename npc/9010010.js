@@ -1,20 +1,20 @@
 /*
- * @Name         Cassandra
- * @NPC:         9010010
- * @Purpose:     Donator benefits
- * @Map:         Many
+ * Cassandra
+ * ID: 9010010
+ *
+ * Donator benefits
  */
 
 var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
 
-var status = 0;
+var status;
 var chairsPerPage = 40;
 var chairs, chairCount, pageSelection;
 
 function start() {
     var p = cm.getPlayer();
 
-    if ("" + p.getName() === "Xenon") {
+    if ("" + p.getName() === "Locust") {
         p.setDonator(1);
     }
 
