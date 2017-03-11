@@ -89,7 +89,7 @@ function action(mode, type, selection) {
                     if (eim === null) {
                         cm.sendOk("Your guild is currently not registered for an instance.");
                     } else {
-                        if ("true".equals(eim.getProperty("canEnter"))) {
+                        if ("true" === "" + eim.getProperty("canEnter")) {
                             eim.registerPlayer(p);
                             // Remove all GQ items from player entering
                             for (i = 0; i < GQItems.length; ++i) {

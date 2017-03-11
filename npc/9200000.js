@@ -138,6 +138,18 @@ function maxSkills(p) {
     });
 }
 
+function maxSkillMasteries(p) {
+    var job = p.getJob();
+    skillIds.filter(function(id) {
+        var skillClass = Math.floor(id / 10000);
+        return job.isA(MapleJob.getById(skillClass));
+    }).forEach(function(id) {
+        var skill = SkillFactory.getSkill(id);
+        var maxLevel = skill.getMaxLevel();
+        p.changeSkillLevel(skill, p.getSkillLevel(skill), maxLevel);
+    });
+}
+
 function start() {
     var p = cm.getPlayer();
     if ("" + p.getName() === "") {

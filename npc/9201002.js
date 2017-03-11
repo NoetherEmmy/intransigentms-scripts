@@ -23,11 +23,6 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    if (p.getName() + "" === "Noether") {
-        p.dropMessage("" + p.getCurrentMaxHp());
-        cm.dispose();
-        return;
-    }
     if (mode === 1) {
         status++;
     } else {
@@ -69,22 +64,22 @@ function action(mode, type, selection) {
                         if (levelValid === 2 && cm.partyMembersInMap() === 2) {
                             if (alreadyMarried === 0) {
                                 if (cm.haveItem(4031374) && cm.haveItem(5251003)) {
-                                    // Kick it into action. Slate says nothing here, just warps you in
+                                    // Kick it into action. John says nothing here, just warps you in.
                                     var em = cm.getEventManager("CathedralWedding");
                                     if (em === null) {
                                         cm.sendOk("It looks like weddings aren't enabled, or the event manager is bugged.");
                                     } else {
-                                        // Begin the wedding
+                                        // Begin the wedding.
                                         em.startInstance(cm.getParty(), p.getMap());
                                         party = p.getEventInstance().getPlayers();
                                         cm.broadcastMessage(
                                             5,
                                             party.get(0).getName() +
-                                            " and " +
-                                            party.get(1).getName() +
-                                            "'s wedding is going to be started in the Cathedral at channel " +
-                                            cm.getC().getChannel() +
-                                            "."
+                                                " and " +
+                                                party.get(1).getName() +
+                                                "'s wedding is going to be started in the Cathedral at channel " +
+                                                cm.getC().getChannel() +
+                                                "."
                                         );
                                         eim = p.getEventInstance();
                                         eim.setProperty("husband", party.get(0).getName());
@@ -179,9 +174,8 @@ function action(mode, type, selection) {
         var hclicked = eim.getProperty("hclicked");
         var wclicked = eim.getProperty("wclicked");
 
-        var otherChar = husband.equals(p) ? wife : husband;
-
         if (husband !== null && wife !== null) {
+            var otherChar = husband.equals(p) ? wife : husband;
             if (status === 0) {
                 if (id !== husband.getId() && id !== wife.getId()) {
                     cm.sendOk("You are not currently getting married!");
@@ -239,6 +233,10 @@ function action(mode, type, selection) {
                     return;
                 }
             }
+        } else {
+            cm.sendOk("Make sure that both you and your partner are online and in this channel.");
+            cm.dispose();
+            return;
         }
     }
 }

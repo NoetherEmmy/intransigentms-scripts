@@ -14,7 +14,7 @@ var chairs, chairCount, pageSelection;
 function start() {
     var p = cm.getPlayer();
 
-    if ("" + p.getName() === "Locust") {
+    if ("" + p.getName() === "Epicane") {
         p.setDonator(1);
     }
 
