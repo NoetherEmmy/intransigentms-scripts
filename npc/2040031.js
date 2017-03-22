@@ -1,8 +1,10 @@
-/* 
+/*
  * Document Roll
  * ID: 2040031
  * Quest IDs: 1007, 1010
  */
+
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
 var ids = [1007, 1010];
@@ -12,7 +14,8 @@ function start() {
     action(1, 0, 0);
 }
 
-function action (mode, type, selection) {
+function action(mode, type, selection) {
+    var p = cm.getPlayer();
     if (mode === -1) {
         cm.dispose();
         return;
@@ -26,14 +29,14 @@ function action (mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest() && ids[0] - 1000 === cm.getStory()) {
+    if (!cm.onQuest(ids[0]) && p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[0])) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk("#ethe document rolls itself up tight and stops making noise#n");
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.selectQuest(ids[0], "It's a colorful scroll with some unintelligible scribbles on it.")); 
+                cm.sendSimple(cm.selectQuest(ids[0], "It's a colorful scroll with some unintelligible scribbles on it."));
             }
         } else if (status === 1) {
             if (mode === 0) {
@@ -41,7 +44,7 @@ function action (mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.getPlayer().getCQuest().loadInfo(ids[0]) + "\r\n\r\n#L0#(go closer to the document roll)#l\r\n#L1#(walk away)#l\r\n#L2#Hello? Is someone in here?#l\r\n#L3#(shush the document roll for being so loud)#l");
+                cm.sendSimple(MapleCQuests.loadQuest(ids[0]).getInfo() + "\r\n\r\n#L0#(go closer to the document roll)#l\r\n#L1#(walk away)#l\r\n#L2#Hello? Is someone in here?#l\r\n#L3#(shush the document roll for being so loud)#l");
             }
         } else if (status === 2) {
             if (mode === 0) {
@@ -148,18 +151,20 @@ function action (mode, type, selection) {
                 return;
             }
         } else if (status === 10) {
-            cm.startCQuest(ids[0]);
+            if (!cm.startCQuest(ids[0])) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
-    } else if (!cm.onQuest() && ids[1] - 1000 === cm.getStory()) {
+    } else if (!cm.onQuest(ids[1]) && p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[1])) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk("#ethe document rolls itself up tight and stops making noise#n");
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.selectQuest(ids[1], "It's a colorful scroll with some unintelligible scribbles on it.")); 
+                cm.sendSimple(cm.selectQuest(ids[1], "It's a colorful scroll with some unintelligible scribbles on it."));
             }
         } else if (status === 1) {
             if (mode === 0) {
@@ -167,56 +172,54 @@ function action (mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendAcceptDecline(cm.getPlayer().getCQuest().loadInfo(ids[1]));
+                cm.sendAcceptDecline(MapleCQuests.loadQuest(ids[1]).getInfo());
             }
         } else if (status === 2) {
-            cm.startCQuest(ids[1]);
+            if (!cm.startCQuest(ids[1])) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
-    } else if (!cm.onQuest()) {
+    } else if (!cm.onQuest(ids[0]) && !cm.onQuest(ids[1])) {
         cm.sendOk("It's a colorful scroll with some unintelligible scribbles on it.");
         cm.dispose();
         return;
-    } else if (!cm.onQuest(ids[0]) && !cm.onQuest(ids[1])) {
+    } else if (cm.canComplete(ids[0])) {
         if (status === 0) {
-            cm.sendYesNo("Jou already acsept'd " + cm.getPlayer().getCQuest().getTitle() + ". Do jou wysch to cancele it?"); 
+            cm.sendSimple(cm.selectQuest(ids[0], "It's a colorful scroll with some unintelligible scribbles on it."));
         } else if (status === 1) {
-            cm.startCQuest(0);
+            cm.sendOk(cm.showReward(ids[0], "Verray wel dien, myn childe."));
+        } else if (status === 2) {
+            cm.rewardPlayer(ids[0]);
             cm.dispose();
+            return;
         }
-    } else if (cm.onQuest(ids[0]) && cm.canComplete()) {
-        if (status === 0) { 
-            cm.sendSimple(cm.selectQuest(ids[0], "It's a colorful scroll with some unintelligible scribbles on it.")); 
-        } else if (status === 1) { 
-            cm.sendOk(cm.showReward("Verray wel dien, myn childe."));
-        } else if (status === 2) { 
-            cm.rewardPlayer(1, 0);
-            cm.getPlayer().sendHint(cm.randomText(6));
+    } else if (cm.canComplete(ids[1])) {
+        if (status === 0) {
+            cm.sendSimple(cm.selectQuest(ids[1], "It's a colorful scroll with some unintelligible scribbles on it."));
+        } else if (status === 1) {
+            cm.sendOk(cm.showReward(ids[1], "Verray wel dien, myn childe."));
+        } else if (status === 2) {
+            cm.rewardPlayer(ids[1]);
             cm.dispose();
+            return;
         }
-    } else if (cm.onQuest(ids[1]) && cm.canComplete()) {
-        if (status === 0) { 
-            cm.sendSimple(cm.selectQuest(ids[1], "It's a colorful scroll with some unintelligible scribbles on it.")); 
-        } else if (status === 1) { 
-            cm.sendOk(cm.showReward("Verray wel dien, myn childe."));
-        } else if (status === 2) { 
-            cm.rewardPlayer(1, 0);
-            cm.getPlayer().sendHint(cm.randomText(6));
-            cm.dispose();
-        }
-    } else if ((cm.onQuest(ids[0]) || cm.onQuest(ids[1])) && !cm.canComplete()) { 
-        if (status === 0) { 
+    } else if ((cm.onQuest(ids[0]) || cm.onQuest(ids[1])) && !cm.canComplete()) {
+        if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
-            } else { 
-                cm.sendSimple(cm.selectQuest(ids[cm.onQuest(ids[0]) ? 0 : 1], "It's a colorful scroll with some unintelligible scribbles on it.")); 
+                return;
             }
+            cm.sendSimple(cm.selectQuest(ids[cm.onQuest(ids[0]) ? 0 : 1], "It's a colorful scroll with some unintelligible scribbles on it."));
         } else if (status === 1) {
             cm.sendYesNo("Jou hawwe net finisshed jo task giet! Jou cunna loek it uppe bi te typen #b@questinfo#k yn da chater.\r\nDo jou wysch to cancele this quaeste?");
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(ids[0])) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
+            return;
         }
     }
 }

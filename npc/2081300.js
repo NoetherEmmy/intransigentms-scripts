@@ -5,6 +5,10 @@
  * ID: 2081300
  */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+var Toml            = Java.type("com.moandjiezana.toml.Toml");
+var FileInputStream = Java.type("java.io.FileInputStream");
+
 var status;
 var ids = [4000, 4001, 4002, 4003, 4004];
 var skills =
@@ -38,19 +42,23 @@ var maplewarrior =
     [2221000, 30], [2321000, 30], [3121000, 30], [3221000, 30],
     [4121000, 30], [4221000, 30], [5121000, 30], [5221000, 30]
 ];
-var qualifies, reward, idon;
+var qualifies, reward, id;
 
 function contains(a, o) {
     for (var i = 0; i < a.length; ++i) {
-        if (a[i] === o) {
-            return true;
-        }
+        if (a[i] === o) return true;
     }
     return false;
 }
 
 function start() {
-    idon = ids[0] + cm.getBuffStory();
+    id = 0;
+    for (var i = 0; i < ids.length; ++i) {
+        if (cm.getPlayer().canBeginCQuest(ids[i])) {
+            id = ids[i];
+            break;
+        }
+    }
     status = -1;
     action(1, 0, 0);
 }
@@ -76,23 +84,15 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk("Bye, then.");
                 cm.dispose();
                 return;
-            } else if (contains(ids, idon)) {
-                rewards = skills[idon - ids[0]];
-                var hasquest = false;
-                for (i = 0; i < rewards.length; ++i) {
-                    if (Math.floor(rewards[i][0] / 10000) === p.getJob().getId()) {
-                        hasquest = true;
-                        break;
-                    }
-                }
-                if (hasquest) {
-                    cm.sendSimple(cm.selectQuest(idon, "I can train you to bolster yourself, and your party members."));
+            } else if (contains(ids, id)) {
+                if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
+                    cm.sendSimple(cm.selectQuest(id, "I can train you to bolster yourself, and your party members."));
                 } else {
                     cm.sendOk("Your training with me is finished. You are an apprentice to no one now.");
                     cm.dispose();
@@ -109,7 +109,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendAcceptDecline(p.getCQuest().loadInfo(idon));
+                cm.sendAcceptDecline(MapleCQuests.loadQuest(id).getInfo());
             }
         } else if (status === 2) {
             if (mode === 0) {
@@ -117,23 +117,27 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             }
-            cm.startCQuest(idon);
+            if (!cm.startCQuest(id)) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
-    } else if (!cm.onQuest(idon)) {
+    } else if (!cm.onQuest(id)) {
         if (status === 0) {
-            cm.sendYesNo(cm.randomText(4) + p.getCQuest().getTitle() + cm.randomText(5));
+            cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
         } else if (status === 1) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(idon) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
-            cm.sendSimple(cm.selectQuest(idon, "Well what have we here?"));
+            cm.sendSimple(cm.selectQuest(id, "Well what have we here?"));
         } else if (status === 1) {
-            rewards = skills[idon - ids[0]];
+            rewards = skills[id - ids[0]];
             for (i = 0; i < rewards.length; ++i) {
                 if (Math.floor(rewards[i][0] / 10000) === p.getJob().getId()) {
                     reward = rewards[i];
@@ -147,16 +151,16 @@ function action(mode, type, selection) {
             }
             if (qualifies) {
                 var extra = "";
-                if (idon === 4002) {
+                if (id === 4002) {
                     extra = "#e, #rMaple Warrior#k #b30#k#n";
-                } else if (idon === 4004) {
+                } else if (id === 4004) {
                     if (reward[0] === 1221004) {
                         extra = "#e, #rHoly Charge: Sword#k #b20#k#n";
                     } else if (reward[0] === 1121010) {
                         extra = "#e, #rEnrage#k #b30#k#n";
                     }
                 }
-                cm.sendOk(cm.showReward("Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n" + extra));
+                cm.sendOk(cm.showReward(id, "Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n" + extra));
             } else {
                 cm.sendOk("You don't have the requisite skill master levels to complete this quest! Come back to me when you've got a master level of at least #b" + (reward[1] - 10) + "#k in the #r" + cm.getSkillNameById(reward[0]) + "#k skill.");
                 cm.dispose();
@@ -164,35 +168,34 @@ function action(mode, type, selection) {
             }
         } else if (status === 2) {
             p.setMasterLevel(reward[0], reward[1]);
-            if (idon === 4002) {
+            if (id === 4002) {
                 for (i = 0; i < maplewarrior.length; ++i) {
                     if (Math.floor(maplewarrior[i][0] / 10000) === p.getJob().getId()) {
                         p.setMasterLevel(maplewarrior[i][0], maplewarrior[i][1]);
                         break;
                     }
                 }
-            } else if (idon === 4004) {
+            } else if (id === 4004) {
                 if (reward[0] === 1221004) {
                     p.setMasterLevel(reward[0] - 1, reward[1]);
                 } else if (reward[0] === 1121010) {
                     p.setMasterLevel(reward[0], reward[1] + 10);
                 }
             }
-            cm.fourthRewardPlayer(0, 1);
-            p.sendHint(cm.randomText(6));
+            cm.rewardPlayer(id);
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(idon) && !cm.canComplete()) {
+    } else if (cm.onQuest(id) && !cm.canComplete(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.selectQuest(idon, "I can make you... so much more powerful."));
+                cm.sendSimple(cm.selectQuest(id, "I can make you... so much more powerful."));
             }
         } else if (status === 1) {
-            cm.sendOk("This is what I need from you:\r\n\r\n" + p.getCQuest().loadInfo(idon));
+            cm.sendOk("This is what I need from you:\r\n\r\n" + MapleCQuests.loadQuest(id).getInfo());
         } else if (status === 2) {
             cm.dispose();
             return;

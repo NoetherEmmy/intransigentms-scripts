@@ -5,10 +5,10 @@
  * Quest ID: 10001
  */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
 var id = 10001;
-var questNum = 1;
-var questNums = [0, 1, 2, 3];
 
 function start() {
     status = -1;
@@ -25,13 +25,10 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         switch (status) {
             case 0:
-                var notAlreadyCompleted =
-                    !p.getQuestCompletion(questNum) ||
-                    questNums.every(function(qn) { return p.getQuestCompletion(qn); });
-                if (p.getLevel() >= 120 && notAlreadyCompleted) {
+                if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                     cm.sendSimple(cm.selectQuest(id, "#esnoring#n"));
                 } else {
                     cm.sendOk("#esnoring#n");
@@ -40,7 +37,7 @@ function action(mode, type, selection) {
                 }
                 break;
             case 1:
-                cm.sendSimple(p.getCQuest().loadInfo(id) + "\r\n\r\n#L0#(walk past the sleeping guard)#l\r\n#L1#Um... hello? Anyone in there?#l\r\n#L2#(walk away form the guard)#l");
+                cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#(walk past the sleeping guard)#l\r\n#L1#Um... hello? Anyone in there?#l\r\n#L2#(walk away form the guard)#l");
                 break;
             case 2:
                 switch (selection) {
@@ -98,7 +95,9 @@ function action(mode, type, selection) {
                 }
                 break;
             case 7:
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             default:
@@ -108,28 +107,28 @@ function action(mode, type, selection) {
     } else if (!cm.onQuest(id)) {
         switch (status) {
             case 0:
-                cm.sendYesNo(cm.randomText(4) + p.getCQuest().getTitle() + cm.randomText(5));
+                cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
                 break;
             case 1:
-                cm.startCQuest(0);
+                if (!cm.forfeitCQuestById(id)) {
+                    cm.sendOk(cm.randomText(9));
+                }
                 cm.dispose();
                 return;
             default:
                 cm.dispose();
                 return;
         }
-    } else if (cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         switch (status) {
             case 0:
-                cm.sendSimple(cm.selectQuest(id, "#esnoring#n")); 
+                cm.sendSimple(cm.selectQuest(id, "#esnoring#n"));
                 break;
             case 1:
-                cm.sendNext(cm.showReward("Wow! You were able to get all of those things? Thanks so much!"));
+                cm.sendNext(cm.showReward(id, "Wow! You were able to get all of those things? Thanks so much!"));
                 break;
             case 2:
-                p.setQuestCompletion(questNum, true);
-                cm.rewardPlayer(0, 0);
-                p.sendHint(cm.randomText(6));
+                cm.rewardPlayer(id);
                 cm.dispose();
                 return;
             default:
@@ -150,7 +149,9 @@ function action(mode, type, selection) {
                 cm.sendYesNo(cm.randomText(7));
                 break;
             case 2:
-                cm.startCQuest(0);
+                if (!cm.forfeitCQuestById(id)) {
+                    cm.sendOk(cm.randomText(9));
+                }
                 cm.dispose();
                 return;
             default:

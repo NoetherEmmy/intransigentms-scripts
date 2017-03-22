@@ -6,14 +6,15 @@
  * Quest ID: 2021
  */
 
-var Rectangle = Java.type("java.awt.Rectangle");
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+var Rectangle    = Java.type("java.awt.Rectangle");
 
-var status = 0;
+var status;
 var id = 2021;
 var mapId = 105;
 var mobId = 8200000;
 var spawnArea = new Rectangle(-430, -2900, 800, 2850);
- 
+
 function start() {
     status = -1;
     action(1, 0, 0);
@@ -31,9 +32,9 @@ function action(mode, type, selection) {
         return;
     }
     status += mode === 1 ? 1 : -1;
-    
+
     if (p.getMap().getId() === 105) {
-        if (cm.canComplete()) {
+        if (cm.canComplete(id)) {
             p.getMap().disposeAllDynamicSpawnWorkers();
             p.getMap().killAllMonsters(false);
             p.getMap().clearDrops();
@@ -41,9 +42,9 @@ function action(mode, type, selection) {
         }
         cm.dispose();
         return;
-    } else if (!cm.onQuest()) {
+    } else if (!cm.onQuest(id)) {
         if (status === 0) {
-            if (id - 2000 === cm.getStoryPoints() || p.isGM()) {
+            if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, "#eglares back at you with a keystony gaze#n"));
             } else {
                 cm.sendOk("#eglares back at you with a keystony gaze#n");
@@ -51,7 +52,7 @@ function action(mode, type, selection) {
                 return;
             }
         } else if (status === 1) {
-            cm.sendSimple(p.getCQuest().loadInfo(id) + "\r\n\r\n#L0#Um... what do you want?#l\r\n#L1#(stare back at the man)#l\r\n#L2#(walk away, ignoring the man)#l");
+            cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Um... what do you want?#l\r\n#L1#(stare back at the man)#l\r\n#L2#(walk away, ignoring the man)#l");
         } else if (status === 2) {
             if (mode === 0) {
                 cm.sendOk("#egrumbles under breath#n");
@@ -118,21 +119,22 @@ function action(mode, type, selection) {
                     p.dropMessage("You feel yourself palpably relocated into the mind of the strange man.");
                     break;
             }
-            //
-            map = p.getClient().getChannelServer().getMapFactory().getMap(mapId);
-            if (map.playerCount() > 0) {
-                p.dropMessage("It looks like someone's already doing the quest on this channel. Maybe try another channel?");
-                cm.dispose();
-                return;
+            if (!cm.startCQuest(id)) {
+                cm.sendOk(cm.randomText(8));
+            } else {
+                map = p.getClient().getChannelServer().getMapFactory().getMap(mapId);
+                if (map.playerCount() > 0) {
+                    p.dropMessage("It looks like someone's already doing the quest on this channel. Maybe try another channel?");
+                    cm.dispose();
+                    return;
+                }
+                map.disposeAllDynamicSpawnWorkers();
+                map.killAllMonsters(false);
+                map.clearDrops();
+                dsw = map.registerDynamicSpawnWorker(mobId, spawnArea, 2500, 125 * 1000, true, 7100);
+                cm.warp(map.getId());
+                dsw.start();
             }
-            map.disposeAllDynamicSpawnWorkers();
-            map.killAllMonsters(false);
-            map.clearDrops();
-            dsw = map.registerDynamicSpawnWorker(mobId, spawnArea, 2500, 125 * 1000, true, 7100);
-            cm.warp(map.getId());
-            dsw.start();
-            //
-            cm.startCQuest(id);
             cm.dispose();
             return;
         }
@@ -140,19 +142,18 @@ function action(mode, type, selection) {
         cm.sendOk("#eglares back at you with a keystony gaze#n");
         cm.dispose();
         return;
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "#eglares back at you with a keystony gaze#n"));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("#eMr. Pickall looks quite (understandably) discombobulated, but far more conscious than he looked when you first came across him#n\r\n\r\nO--oh. My goodness, thank you. I've been having a terrible time of these night terrors, ever since I tried to help pick that #bCasey#k guy's locks..."));
+            cm.sendOk(cm.showReward(id, "#eMr. Pickall looks quite (understandably) discombobulated, but far more conscious than he looked when you first came across him#n\r\n\r\nO--oh. My goodness, thank you. I've been having a terrible time of these night terrors, ever since I tried to help pick that #bCasey#k guy's locks..."));
         } else if (status === 2) {
-            cm.rewardPlayer(0, 1);
+            cm.rewardPlayer(id);
             cm.gainFame(18);
-            p.sendHint(cm.randomText(6));
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
@@ -161,10 +162,12 @@ function action(mode, type, selection) {
                 cm.sendSimple(cm.selectQuest(id, "#eglares back at you with a keystony gaze#n"));
             }
         } else if (status === 1) {
-            cm.sendYesNo(cm.randomText(7)); 
+            cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0); 
-            cm.dispose(); 
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
+            cm.dispose();
             return;
         }
     }

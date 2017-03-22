@@ -6,9 +6,10 @@
  * Start NPC for quest ID: 11000
  */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
 var id = 11000;
-var questNum = 4;
 
 function start() {
     status = -1;
@@ -29,13 +30,12 @@ function action(mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
-        var notAlreadyCompleted = !p.getQuestCompletion(questNum);
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else if (notAlreadyCompleted) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, "#etakes a bite out of what looks like a stray potato#n"));
             } else {
                 cm.sendOk("#etakes a bite out of what looks like a stray potato#n");
@@ -43,7 +43,7 @@ function action(mode, type, selection) {
                 return;
             }
         } else if (status === 1) {
-            cm.sendSimple(p.getCQuest().loadInfo(id) + "\r\n\r\n#L0#(keep walking, ignoring the man)#l\r\n#L1#(look over at the man)#l");
+            cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#(keep walking, ignoring the man)#l\r\n#L1#(look over at the man)#l");
         } else if (status === 2) {
             switch (selection) {
                 case 0:
@@ -70,7 +70,9 @@ function action(mode, type, selection) {
         } else if (status === 4) {
             cm.sendAcceptDecline("That's where you come in, kid.\r\n\r\nThe entire fuckin' #e#rULCER#k#n's really just two fellas.\r\n#e#dCommando Jim#k#n, and some other fella I can't remember the name of. They can't even make their way past the damn dreck to get to that giant apartment the giganto-tree took over.\r\n\r\nIf you could kill\r\n#b50 Veetrons#k, #b50 Berserkies#k, #b30 Montrecers#k,\r\nand bring 'em back\r\n#b50 Veetron Horns#k, #b50 Sweat Beads#k, and #b30 Oil Canisters#k for documentation purposes...\r\n\r\n...hell, they'd prolly put ya on the #e#rULCER#k#n right then 'n' there.");
         } else if (status === 5) {
-            cm.startCQuest(id);
+            if (!cm.startCQuest(id)) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
@@ -78,7 +80,7 @@ function action(mode, type, selection) {
         cm.sendOk("#etakes a bite out of what looks like a stray potato#n");
         cm.dispose();
         return;
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "#etakes a bite out of what looks like a stray potato#n"));
         } else if (status === 1) {
@@ -86,7 +88,7 @@ function action(mode, type, selection) {
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
@@ -95,10 +97,12 @@ function action(mode, type, selection) {
                 cm.sendSimple(cm.selectQuest(id, "#etakes a bite out of what looks like a stray potato#n"));
             }
         } else if (status === 1) {
-            cm.sendYesNo(cm.randomText(7)); 
+            cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0); 
-            cm.dispose(); 
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
+            cm.dispose();
             return;
         }
     }

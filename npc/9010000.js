@@ -1,7 +1,7 @@
-/**
-    Maple Administrator
-    ID: 9010000
-**/
+/*
+ * Maple Administrator
+ * ID: 9010000
+ */
 
 /* jshint ignore: start */
 // Array.prototype.find() polyfill
@@ -22,6 +22,7 @@ var PortalScriptManager    = Java.type("net.sf.odinms.scripting.portal.PortalScr
 //var MapleInventoryManipulator = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
 var MapleInventoryType     = Java.type("net.sf.odinms.client.MapleInventoryType");
 var MaplePacketCreator     = Java.type("net.sf.odinms.tools.MaplePacketCreator");
+var PartyQuest             = Java.type("net.sf.odinms.net.channel.PartyQuest");
 
 var status;
 var troubleshot = false;
@@ -60,33 +61,16 @@ function action(mode, type, selection) {
 
     /*
     if ("" + p.getName() === "") {
-        var energyBlast = SkillFactory.getSkill(5111002);
-        var flashJump = SkillFactory.getSkill(4111006);
+        var energyBlast = SkillFactory.getSkill(3200001);
         var ebl = p.getSkillLevel(energyBlast);
-        var fjl = p.getSkillLevel(flashJump);
-        if (ebl >= 20 && fjl === 0) {
-            p.changeSkillLevel(energyBlast, ebl - 20, 30);
-            p.changeSkillLevel(flashJump, 20, 20);
-            //p.setRemainingSp(p.getRemainingSp() + paml);
-            //p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
+        if (ebl >= 1) {
+            p.changeSkillLevel(energyBlast, 0, 30);
+            p.setRemainingSp(p.getRemainingSp() + ebl);
+            p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
             cm.sendOk("gud 2 go fam");
-            cm.dispose();
-            return;
         } else {
-            p.dropMessage("It doesn't look like you have 0 levels in Flash Jump and 20+ in Energy Blast.");
-            cm.dispose();
-            return;
+            p.dropMessage("It doesn't look like you have FA: Xbow.");
         }
-    }
-    */
-
-    /*
-    if ("" + p.getName() === "Noether") {
-        //for (var i = 0; i < 5; ++i) {
-            p.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8810003), p.getPosition());
-        //}
-        p.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8810018), p.getPosition());
-        p.getMap().killAllMonsters(true);
         cm.dispose();
         return;
     }

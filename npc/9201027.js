@@ -4,7 +4,10 @@
  *
  * ID: 9201027
  * Love fairy
+ * Quest ID: 1018
  */
+
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
 var id = 1018;
@@ -18,7 +21,7 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    if (id - 1000 !== cm.getStory()) {
+    if (!p.hasOpenCQuestSlot() || !p.canBeginCQuest(id)) {
         if (mode === 1) {
             status++;
         } else if (type === 0 && mode === 0) {
@@ -98,13 +101,13 @@ function action(mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk("Hm. Fine.");
                 cm.dispose();
                 return;
-            } else if (id - 1000 === cm.getStory()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, "Hi, sweetie."));
             } else {
                 cm.sendOk("Hi, sweetie.");
@@ -117,7 +120,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(p.getCQuest().loadInfo(id) + "\r\n\r\n#L0#Oh, I was just... you know, I had this important thing, that, I have to do. Right now.#l\r\n#L1#Just came back to Perion to take a little look around, really.#l\r\n#L2#Come to think of it, I think I came to the wrong place.#l\r\n#L3#Oh just, um, stopped in to say hello.#l");
+                cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Oh, I was just... you know, I had this important thing, that, I have to do. Right now.#l\r\n#L1#Just came back to Perion to take a little look around, really.#l\r\n#L2#Come to think of it, I think I came to the wrong place.#l\r\n#L3#Oh just, um, stopped in to say hello.#l");
             }
         } else if (status === 2) {
             if (mode === 0) {
@@ -168,7 +171,9 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
@@ -177,19 +182,18 @@ function action(mode, type, selection) {
         cm.sendOk("Hi, sweetie.");
         cm.dispose();
         return;
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "Hi, sweetie."));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("Aww, you're such a sweetheart. Thank you! #eclears throat#n"));
+            cm.sendOk(cm.showReward(id, "Aww, you're such a sweetheart. Thank you! #eclears throat#n"));
         } else if (status === 2) {
-            cm.rewardPlayer(1, 0);
+            cm.rewardPlayer(id);
             cm.gainFame(9);
-            p.sendHint(cm.randomText(6));
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
@@ -200,7 +204,9 @@ function action(mode, type, selection) {
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }

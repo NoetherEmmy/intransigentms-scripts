@@ -28,6 +28,13 @@ npc/9100117.js
 npc/newgach.js
 npc/oldgach.js
 
+# Archives #
+*.zip
+*.7z
+*.rar
+*.tar.gz
+*.tar
+
 # Java #
 *.java
 *.class

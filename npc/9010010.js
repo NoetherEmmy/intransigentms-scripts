@@ -6,6 +6,8 @@
  */
 
 var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
+var MapleQuest                   = Java.type("net.sf.odinms.server.quest.MapleQuest");
+var Status                       = Java.type("net.sf.odinms.client.MapleQuestStatus.Status");
 
 var status;
 var chairsPerPage = 40;
@@ -14,8 +16,31 @@ var chairs, chairCount, pageSelection;
 function start() {
     var p = cm.getPlayer();
 
-    if ("" + p.getName() === "Epicane") {
+    if ("" + p.getName() === "") {
         p.setDonator(1);
+    }
+
+/*
+    // ("" + p.getName() === "Riley" || "" + p.getName() === "Rune") && 
+    if (cm.getQuestStatus(2142).equals(Status.STARTED) /*&& cm.itemQuantity(4031170) >= 10) {
+        //cm.gainItem(4031170, -10);
+        cm.gainItem(2000002, 30);
+        cm.gainItem(2000003, 50);
+        p.gainExp(645 * 12, true, true);
+        MapleQuest.getInstance(2142).forceComplete(p, 2041021);
+        //p.gainMeso(3270 * 8);
+        cm.dispose();
+        return;
+    }
+*/
+
+    if (cm.getQuestStatus(7100).equals(Status.STARTED) && cm.itemQuantity(4031170) >= 10) {
+        cm.gainItem(4031170, -10);
+        p.gainExp(2700 * 12, true, true);
+        MapleQuest.getInstance(7100).forceComplete(p, 2041021);
+        p.gainMeso(3270 * 8);
+        cm.dispose();
+        return;
     }
 
     status = -1;

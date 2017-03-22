@@ -66,7 +66,6 @@ function action(mode, type, selection) {
             break;
         case 3:
             p.setScpqFlag(true);
-            p.sendHint("Party quest flagged: #eSous Chef Party Quest#n");
             cm.dispose();
             return;
         default:
@@ -102,16 +101,18 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
         }
-    } else if (!cm.onQuest()) {
+    } else if (!cm.onQuest(id)) {
         switch (status) {
             case 0:
                 cm.sendSimple(cm.selectQuest(id, "#esigh#n\r\nI don't think this whole cobbler thing is working out for me..."));
                 break;
             case 1:
-                cm.sendAcceptDecline(p.getCQuest().loadInfo(id));
+                cm.sendAcceptDecline(MapleCQuests.loadQuest(id).getInfo());
                 break;
             case 2:
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             default:
@@ -121,10 +122,12 @@ function action(mode, type, selection) {
     } else if (!cm.onQuest(id)) {
         switch (status) {
             case 0:
-                cm.sendYesNo(cm.randomText(4) + p.getCQuest().getTitle() + cm.randomText(5));
+                cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
                 break;
             case 1:
-                cm.startCQuest(0);
+                if (!cm.forfeitCQuestById(id)) {
+                    cm.sendOk(cm.randomText(9));
+                }
                 cm.dispose();
                 return;
             default:
@@ -134,17 +137,16 @@ function action(mode, type, selection) {
     } else if (cm.canComplete()) {
         switch (status) {
             case 0:
-                cm.sendSimple(cm.selectQuest(id, "#esigh#n\r\nI don't think this whole cobbler thing is working out for me...")); 
+                cm.sendSimple(cm.selectQuest(id, "#esigh#n\r\nI don't think this whole cobbler thing is working out for me..."));
                 break;
             case 1:
-                cm.sendNext(cm.showReward("Damn, dude... I can almost feel myself becoming the master chef..."));
+                cm.sendNext(cm.showReward(id, "Damn, dude... I can almost feel myself becoming the master chef..."));
                 break;
             case 2:
                 cm.sendOk("Oh, and -- ummmm -- hold up.\r\n\r\nLike I said, you know, I can start cooking up some mad meals with these supplies you've brought me here, but...\r\nI know it's just not going to cut it.\r\n\r\nThe Chef's recipes are just too strong. That's why I need you to #esteal The Chef's recipes for me#n. The Chef never shows himself; heck, no one even knows where the guy lives. That's how he keeps his recipes secret.\r\n\r\nHowever, there is #eone#n time that you can maybe find him. Every year here in Ossyria there's a big, fancy event called the \"Aniversary of the Realm.\" Basically a fancy rich-people bash -- this year's is actually coming up pretty soon.\r\n\r\nIf you could #bget together with some friends#k and talk to someone who can take you to #e#dLilin's Manor#k#n, it's possible that you could sneak in and make off with some of The Chef's juicy recipes.\r\n\r\nHeck, I know a guy that can take you there even if you don't have any connections. His name's #bBearlywyne#k. Not exactly the greatest transportation service in the realm, but he can get you there.\r\n\r\nHe usually hangs around #eOrbis proper#n, so check there.");
                 break;
             case 3:
-                cm.rewardPlayer(0, 0);
-                p.sendHint(cm.randomText(6));
+                cm.rewardPlayer(id);
                 p.setScpqFlag(true);
                 cm.dispose();
                 return;
@@ -166,7 +168,9 @@ function action(mode, type, selection) {
                 cm.sendYesNo(cm.randomText(7));
                 break;
             case 2:
-                cm.startCQuest(0);
+                if (!cm.forfeitCQuestById(id)) {
+                    cm.sendOk(cm.randomText(9));
+                }
                 cm.dispose();
                 return;
             default:

@@ -79,6 +79,7 @@ function action(mode, type, selection) {
     var p = cm.getPlayer();
     var pq = p.getPartyQuest();
     var mi = p.getMap().getPartyQuestInstance();
+    var _chrs;
 
     if (mode < 0 || (status < 1 && mode === 0)) {
         cm.dispose();
@@ -182,7 +183,7 @@ function action(mode, type, selection) {
                         pq.registerMap(mapId + nextMapIncrement);
                         if (mapId === 5010) {
                             var charNum = 1;
-                            var _chrs = [];
+                            _chrs = [];
                             p.getMap()
                              .getCharacters()
                              .forEach(function(c) {
@@ -208,11 +209,15 @@ function action(mode, type, selection) {
                                     charNum++;
                                 });
                         } else {
+                            _chrs = [];
                             p.getMap()
                              .getCharacters()
                              .forEach(function(c) {
-                                 c.changeMap(mapId + nextMapIncrement);
+                                 _chrs.push(c);
                              });
+                            _chrs.forEach(function(c) {
+                                c.changeMap(mapId + nextMapIncrement);
+                            });
                         }
                         pq.unregisterMap(mapId);
                         cm.dispose();

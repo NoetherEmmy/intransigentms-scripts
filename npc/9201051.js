@@ -5,14 +5,17 @@
  * Quest ID: 10000
  */
 
-var status = 0;
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
+var status;
 var id = 10000;
-var questNum = 0;
-var questNums = [0, 1, 2, 3];
 var address;
 
 function start() {
-    address = cm.getPlayer().getGender() === 0 ? "fine young enterprising man" : "fine young spirited woman";
+    address =
+        cm.getPlayer().getGender() === 0 ?
+            "fine young enterprising man" :
+            "fine young spirited woman";
     status = -1;
     action(1, 0, 0);
 }
@@ -27,11 +30,10 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         switch (status) {
             case 0:
-                var notAlreadyCompleted = !p.getQuestCompletion(questNum) || questNums.every(function(qn) { return p.getQuestCompletion(qn); });
-                if (p.getLevel() >= 120 && notAlreadyCompleted) {
+                if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                     cm.sendSimple(cm.selectQuest(id, "#eappears busy, although it's not clear with what#n"));
                 } else {
                     cm.sendOk("#eappears busy, although it's not clear with what#n");
@@ -40,7 +42,7 @@ function action(mode, type, selection) {
                 }
                 break;
             case 1:
-                cm.sendSimple(p.getCQuest().loadInfo(id) + "\r\n\r\n#L0#Hello.#l\r\n#L1#Um... did you just call me \"sir or ma'am\"?#l\r\n#L2#What are you selling me?#l\r\n#L3#(walk away)#l");
+                cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Hello.#l\r\n#L1#Um... did you just call me \"sir or ma'am\"?#l\r\n#L2#What are you selling me?#l\r\n#L3#(walk away)#l");
                 break;
             case 2:
                 switch (selection) {
@@ -73,38 +75,25 @@ function action(mode, type, selection) {
                 }
                 break;
             case 4:
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             default:
                 cm.dispose();
                 return;
         }
-    } else if (!cm.onQuest(id)) {
+    } else if (cm.canComplete(id)) {
         switch (status) {
             case 0:
-                cm.sendYesNo(cm.randomText(4) + p.getCQuest().getTitle() + cm.randomText(5));
+                cm.sendSimple(cm.selectQuest(id, "#eappears busy, although it's not clear with what#n"));
                 break;
             case 1:
-                cm.startCQuest(0);
-                cm.dispose();
-                return;
-            default:
-                cm.dispose();
-                return;
-        }
-    } else if (cm.canComplete()) {
-        switch (status) {
-            case 0:
-                cm.sendSimple(cm.selectQuest(id, "#eappears busy, although it's not clear with what#n")); 
-                break;
-            case 1:
-                cm.sendNext(cm.showReward("Ah, excellent. I'm so glad you could be here to... #rdispose#k of my workers for me."));
+                cm.sendNext(cm.showReward(id, "Ah, excellent. I'm so glad you could be here to... #rdispose#k of my workers for me."));
                 break;
             case 2:
-                p.setQuestCompletion(questNum, true);
-                cm.rewardPlayer(0, 0);
-                p.sendHint(cm.randomText(6));
+                cm.rewardPlayer(id);
                 cm.dispose();
                 return;
             default:
@@ -125,7 +114,9 @@ function action(mode, type, selection) {
                 cm.sendYesNo(cm.randomText(7));
                 break;
             case 2:
-                cm.startCQuest(0);
+                if (!cm.forfeitCQuestById(id)) {
+                    cm.sendOk(cm.randomText(9));
+                }
                 cm.dispose();
                 return;
             default:

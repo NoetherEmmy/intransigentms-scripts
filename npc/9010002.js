@@ -112,7 +112,7 @@ function getCashList() {
 function start() {
     var p = cm.getPlayer();
     ii = MapleItemInformationProvider.getInstance();
-    gachratio = cm.completedAllQuests() ? 2 : 3;
+    gachratio = false ? 2 : 3; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     Math.seedrandom("F" + p.getName() + "y" + p.getId() + ":" + p.getMeso() + "#" + p.getHp() + "l", { entropy: true });
     status = -1;
     action(1, 0, 0);

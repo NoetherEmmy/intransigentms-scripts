@@ -72,7 +72,7 @@ Array.prototype.fisherYates = function() {
 
 function init() {
     map.restartRespawnWorker();
-    
+
     // Housekeeping
     mi.setLevelLimit(58);
     map.setDropsDisabled(true);

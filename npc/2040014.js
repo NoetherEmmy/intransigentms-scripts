@@ -4,6 +4,8 @@
  * Quest ID: 1008
  */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
 var id = 1008;
 
@@ -12,7 +14,8 @@ function start() {
     action(1, 0, 0);
 }
 
-function action (mode, type, selection) {
+function action(mode, type, selection) {
+    var p = cm.getPlayer();
     if (mode === -1) {
         cm.dispose();
         return;
@@ -26,12 +29,12 @@ function action (mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else if (id - 1000 === cm.getStory()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             } else {
                 cm.sendOk(cm.randomText(1));
@@ -43,7 +46,7 @@ function action (mode, type, selection) {
                 cm.dispose();
                 return;
             }
-            cm.sendSimple(cm.getPlayer().getCQuest().loadInfo(id) + "\r\n\r\n#L0#What?#l");
+            cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#What?#l");
         } else if (status === 2) {
             if (mode === 0) {
                 cm.dispose();
@@ -64,30 +67,33 @@ function action (mode, type, selection) {
                 return;
             }
         } else if (status === 4) {
-            cm.startCQuest(id);
+            if (!cm.startCQuest(id)) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
     } else if (!cm.onQuest(id)) {
         if (status === 0) {
-            cm.sendYesNo(cm.randomText(4) + cm.getPlayer().getCQuest().getTitle() + cm.randomText(5));
+            cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
         } else if (status === 1) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("Yes, this is good. Very good. Take these."));
+            cm.sendOk(cm.showReward(id, "Yes, this is good. Very good. Take these."));
         } else if (status === 2) {
-            cm.rewardPlayer(1, 0);
-            cm.getPlayer().sendHint(cm.randomText(6));
+            cm.rewardPlayer(id);
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
@@ -98,7 +104,9 @@ function action (mode, type, selection) {
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }

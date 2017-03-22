@@ -1,10 +1,12 @@
 /*
  * Kay
- * Omega Sector: Silo
- *
  * ID: 2051001
+ * Omega Sector | Silo
+ *
  * Quest ID: 2020
  */
+
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
 var id = 2020;
@@ -15,6 +17,7 @@ function start() {
 }
 
 function action(mode, type, selection) {
+    var p = cm.getPlayer();
     if (mode === -1) {
         cm.dispose();
         return;
@@ -28,13 +31,13 @@ function action(mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk("K, cool conversation.");
                 cm.dispose();
                 return;
-            } else if (id - 2000 === cm.getStoryPoints()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, "K."));
             } else {
                 cm.sendOk("K.");
@@ -47,7 +50,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.getPlayer().getCQuest().loadInfo(id) + "\r\n\r\n#L0#Um, what?#l\r\n#L1#(walk away from the strange man who refers to himself in the third person)#l");
+                cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Um, what?#l\r\n#L1#(walk away from the strange man who refers to himself in the third person)#l");
             }
         } else if (status === 2) {
             if (mode === 0) {
@@ -78,7 +81,9 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
@@ -87,19 +92,18 @@ function action(mode, type, selection) {
         cm.sendOk("K.");
         cm.dispose();
         return;
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "K."));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("Couldn't come quick? Clawing a ckllauwcke currently, Kay couldn't claim to care:"));
+            cm.sendOk(cm.showReward(id, "Couldn't come quick? Clawing a ckllauwcke currently, Kay couldn't claim to care:"));
         } else if (status === 2) {
-            cm.rewardPlayer(0, 1);
+            cm.rewardPlayer(id);
             cm.gainFame(11);
-            cm.getPlayer().sendHint(cm.randomText(6));
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
@@ -110,7 +114,9 @@ function action(mode, type, selection) {
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }

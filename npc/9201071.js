@@ -5,10 +5,10 @@
  * Summons papu
  */
 
-var MapleLifeFactory = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
-var Point            = Java.type("java.awt.Point");
-var MaplePortal      = Java.type("net.sf.odinms.server.MaplePortal");
 var BossMapMonitor   = Java.type("net.sf.odinms.server.maps.BossMapMonitor");
+var MapleLifeFactory = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
+var MaplePortal      = Java.type("net.sf.odinms.server.MaplePortal");
+var Point            = Java.type("java.awt.Point");
 
 var status;
 var crack = 4031179;
@@ -22,7 +22,7 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    mode >= 0 ? ++status : --status;
+    status += mode >= 0 ? 1 : -1;
     if (p.getMapId() === 220080001) {
         switch (status) {
             case 0:

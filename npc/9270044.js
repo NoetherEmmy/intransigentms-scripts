@@ -7,17 +7,20 @@
  */
 
 /* jshint ignore: start */
-/* Array.prototype.findIndex() polyfill */
+// Array.prototype.findIndex() polyfill
 Array.prototype.findIndex=Array.prototype.findIndex||function(evaluator,thisArg){"use strict";if(!this)throw new TypeError("Array.prototype.some called on null or undefined");if("function"!=typeof evaluator){if("string"!=typeof evaluator)throw new TypeError;if(!(evaluator=eval(evaluator)))throw new TypeError}var i;if(void 0===thisArg){for(i in this)if(evaluator(this[i],i,this))return i;return-1}for(i in this)if(evaluator.call(thisArg,this[i],i,this))return i;return-1};
 /* jshint ignore: end */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
-var ids       = [11000, 11001, 11002, 11003];
-var questNums = [4,     5];
+var ids = [11000, 11001, 11002, 11003];
 var onQuest = function(id) {
     return cm.onQuest(id);
 };
-var mallet = 4031942;
+var canComplete = function(id) {
+    return cm.canComplete(id);
+};
 var selectedIdIndex;
 
 function start() {
@@ -39,20 +42,22 @@ function action(mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
-        var notAlreadyCompleted = !p.getQuestCompletion(questNums[1]);
-        var didPreReq = p.getQuestCompletion(questNums[0]);
+    if (!ids.some(onQuest)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else if (notAlreadyCompleted && didPreReq) {
+            } else if (!p.hasOpenCQuestSlot()) {
+                cm.sendOk("#efiddles around with settings on gun#n");
+                cm.dispose();
+                return;
+            } else if (p.canBeginCQuest(ids[1])) {
                 selectedIdIndex = 1;
                 cm.sendSimple(cm.selectQuest(ids[selectedIdIndex], "#efiddles around with settings on gun#n"));
-            } else if (!notAlreadyCompleted && !cm.haveItem(mallet)) {
+            } else if (p.canBeginCQuest(ids[2])) {
                 selectedIdIndex = 2;
                 cm.sendSimple(cm.selectQuest(ids[selectedIdIndex], "#efiddles around with settings on gun#n"));
-            } else if (cm.haveItem(mallet)) {
+            } else if (p.canBeginCQuest(ids[3])) {
                 selectedIdIndex = 3;
                 cm.sendSimple(cm.selectQuest(ids[selectedIdIndex], "#efiddles around with settings on gun#n"));
             } else {
@@ -62,7 +67,7 @@ function action(mode, type, selection) {
             }
         } else if (selectedIdIndex === 1) {
             if (status === 1) {
-                cm.sendYesNo(p.getCQuest().loadInfo(ids[selectedIdIndex]));
+                cm.sendYesNo(MapleCQuests.loadQuest(ids[selectedIdIndex]).getInfo());
             } else if (status === 2) {
                 cm.sendSimple("Heeeeey, now that's the spirit. We've been looking to expand the #e#rULCER#k#n for quite a while now.\r\n\r\nThat bein' said, I got quite the task for ya. A #ereal#n doozy.\r\n\r\n#L0#Um... could I maybe do something just a tad easier?#l\r\n#L1#Doozies are like, my specialty. My friends even used to call me the, uh, \"The Doozer\".#l");
             } else if (status === 3) {
@@ -73,7 +78,7 @@ function action(mode, type, selection) {
                 }
                 switch (selection) {
                     case 1:
-                        cm.sendSimple("Uhh... that's weird.\r\n\r\nAnywho, now that we cleared enough of those pesky Veetrons and Berserkies and Montrecers, we now know that -- you guessed it -- there's even #emore#n crap beyond all that crap.\r\n\r\nAnd it's worse, too. a couple of 'em are like... weird concrete demon-lookin' motherfuckers with big ol' concrete tree-arms. Scared me shitless.\r\n\r\n#L0#Oh, come on... that can't possibly be real.#l\r\n#L1#I once got in a bar fight with a concrete-lookin' guy. I'm sure I could take 'em.#l\r\n#L2#Uhm... actually, I take back what I said about being \"The Doozer.\"#l");
+                        cm.sendSimple("Uhh... that's weird.\r\n\r\nAnywho, now that we cleared enough of those pesky Veetrons and Berserkies and Montrecers, we now know that -- you guessed it -- there's even #emore#n crap beyond all that crap.\r\n\r\nAnd it's worse, too. A couple of 'em are like... weird concrete demon-lookin' motherfuckers with big ol' concrete tree-arms. Scared me shitless.\r\n\r\n#L0#Oh, come on... that can't possibly be real.#l\r\n#L1#I once got in a bar fight with a concrete-lookin' guy. I'm sure I could take 'em.#l\r\n#L2#Uhm... actually, I take back what I said about being \"The Doozer.\"#l");
                         break;
                     default:
                         cm.dispose();
@@ -93,13 +98,15 @@ function action(mode, type, selection) {
                 }
                 cm.sendAcceptDecline(leadText + "\r\n\r\nIf you could hunt down\r\n#b100 Slygies#k, #b100 Petrifighters#k,\r\nand bring us back\r\n#b100 Slygie Tails#k and #b100 Moss Rocks#k, well...\r\n\r\n...me and Senor Silencio over here could really use the help.");
             } else if (status === 5) {
-                cm.startCQuest(ids[selectedIdIndex]);
+                if (!cm.startCQuest(ids[selectedIdIndex])) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
         } else if (selectedIdIndex === 2) {
             if (status === 1) {
-                cm.sendSimple(p.getCQuest().loadInfo(ids[selectedIdIndex]) + "\r\n\r\n#L0#What kind of problem?#l\r\n#L1#A problem? That's it, I'm out.#l");
+                cm.sendSimple(MapleCQuests.loadQuest(ids[selectedIdIndex]).getInfo() + "\r\n\r\n#L0#What kind of problem?#l\r\n#L1#A problem? That's it, I'm out.#l");
             } else if (status === 2) {
                 if (mode === 0) {
                     cm.sendOk("#egrumbles#n");
@@ -118,51 +125,48 @@ function action(mode, type, selection) {
             } else if (status === 3) {
                 cm.sendAcceptDecline("If we can kill #b100 Dukus#k and harvest their #b100 Rafflesias#k, and then hunt down #bone#k of the fabled #bSoul Lanterns#k from #bCapt. Latanica#k, we could build a #e#dMallet#k#n.\r\n\r\nNot just any old mallet, but the kind of mallet you hear about in the old stories of the gods and godesses who ruled Maple before our time.\r\n\r\nWith that, maybe we could investigate this \"Krexel\" guy.");
             } else if (status === 4) {
-                cm.startCQuest(ids[selectedIdIndex]);
+                if (!cm.startCQuest(ids[selectedIdIndex])) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
         } else if (selectedIdIndex === 3) {
             if (status === 1) {
-                cm.sendAcceptDecline(p.getCQuest().loadInfo(ids[selectedIdIndex]));
+                cm.sendAcceptDecline(MapleCQuests.loadQuest(ids[selectedIdIndex]).getInfo());
             } else if (status === 2) {
-                cm.startCQuest(ids[selectedIdIndex]);
+                if (!cm.startCQuest(ids[selectedIdIndex])) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
         }
-    } else if (!ids.some(onQuest)) {
-        cm.sendOk("#efiddles around with settings on gun#n");
-        cm.dispose();
-        return;
-    } else if (ids.some(onQuest) && cm.canComplete()) {
-        var questIndex = ids.findIndex(onQuest);
+    } else if (ids.some(canComplete)) {
+        var questIndex = ids.findIndex(canComplete);
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(ids[questIndex], "#efiddles around with settings on gun#n"));
         } else if (status === 1) {
-            cm.sendNext(cm.showReward("Well, I'll be damned. Ya did it, kid."));
+            cm.sendNext(cm.showReward(id, "Well, I'll be damned. Ya did it, kid."));
         } else if (status === 2) {
-            if (questIndex < questNums.length) {
-                p.setQuestCompletion(questNums[questIndex], true);
-            }
-            cm.rewardPlayer(0, 0);
+            cm.rewardPlayer(id);
             cm.gainFame(8);
-            p.sendHint(cm.randomText(6));
             cm.dispose();
             return;
         }
-    } else if (ids.some(onQuest) && !cm.canComplete()) {
+    } else if (ids.some(onQuest) && !ids.some(canComplete)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(ids[ids.findIndex(onQuest)], "#efiddles around with settings on gun#n"));
             }
+            cm.sendSimple(cm.selectQuest(ids[ids.findIndex(onQuest)], "#efiddles around with settings on gun#n"));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(ids[ids.findIndex(onQuest)])) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }

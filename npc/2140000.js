@@ -8,12 +8,13 @@
 
 /* jshint ignore: start */
 // Array.prototype.findIndex polyfill
-Array.prototype.findIndex||Object.defineProperty(Array.prototype,"findIndex",{value:function(a){if(null==this)throw new TypeError('"this" is null or not defined');var b=Object(this),c=b.length>>>0;if("function"!=typeof a)throw new TypeError("predicate must be a function");for(var d=arguments[1],e=0;e<c;){var f=b[e];if(a.call(d,f,e,b))return e;e++}return-1}});
+Array.prototype.findIndex||Object.defineProperty(Array.prototype,"findIndex",{value:function(a){if(null===this)throw new TypeError('"this" is null or not defined');var b=Object(this),c=b.length>>>0;if("function"!==typeof a)throw new TypeError("predicate must be a function");for(var d=arguments[1],e=0;e<c;){var f=b[e];if(a.call(d,f,e,b))return e;e++}return-1}});
 /* jshint ignore: end */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
-var questIds  = [12000, 12001, 12002];
-var questNums = [6,     7,     8];
+var questIds = [12000, 12001, 12002];
 var selection1, selection2;
 
 function start() {
@@ -23,44 +24,30 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    if (p.getLevel() < 90) {
-        cm.sendOk("#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n");
-        cm.dispose();
-        return;
-    }
     if (mode < 0 || (mode === 0 && (type === 4 || type === 12 || status < 1))) {
         cm.dispose();
         return;
     }
     status += mode === 1 ? 1 : -1;
-    if (p.getQuestId() !== 0 && questIds.indexOf(p.getQuestId()) === -1) {
-        if (status === 0) {
-            cm.sendYesNo("You're already on the quest: " + p.getCQuest().getTitle() + ".\r\n\r\nWould you like to cancel it?");
-            return;
-        } else if (status === 1) {
-            cm.startCQuest(0);
-        }
-        cm.dispose();
-        return;
-    }
 
-    var questIndex = questNums.findIndex(function(qn) {
-        return !p.getQuestCompletion(qn);
+    var idIndex = questIds.findIndex(function(qid) {
+        return !p.completedCQuest(qid);
     });
+    var id = idIndex >= 0 ? questIds[idIndex] : 0;
 
-    switch (questIndex) {
+    switch (idIndex) {
         case -1:
             cm.sendOk("#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n");
             cm.dispose();
             return;
         case 0:
-            if (!cm.onQuest()) {
+            if (!cm.onQuest(id)) {
                 switch (status) {
                     case 0:
-                        cm.sendSimple(cm.selectQuest(questIds[questIndex], "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
+                        cm.sendSimple(cm.selectQuest(id, "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
                         break;
                     case 1:
-                        cm.sendSimple(p.getCQuest().getInfo() + "\r\n\r\n#L0#Vaguely?#l\r\n#L1#(walk a bit closer to the old man)#l\r\n#L2#Hah, nope. Not a human. Not even a little. (quickly walk away)#l");
+                        cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Vaguely?#l\r\n#L1#(walk a bit closer to the old man)#l\r\n#L2#Hah, nope. Not a human. Not even a little. (quickly walk away)#l");
                         break;
                     case 2:
                         selection1 = selection;
@@ -213,8 +200,11 @@ function action(mode, type, selection) {
                     case 7:
                         switch (selection) {
                             case 1:
-                                cm.warp(40000);
-                                cm.startCQuest(questIds[questIndex]);
+                                if (!cm.startCQuest(id)) {
+                                    cm.sendOk(cm.randomText(8));
+                                } else {
+                                    cm.warp(40000);
+                                }
                                 cm.dispose();
                                 return;
                             default:
@@ -224,16 +214,14 @@ function action(mode, type, selection) {
                         }
                         break;
                 }
-            } else if (cm.onQuest(questIds[questIndex]) && cm.canComplete()) {
+            } else if (cm.canComplete(id)) {
                 switch (status) {
                     case 0:
                         cm.sendOk("#ethe old man almost seems to nod#n");
                         break;
                     case 1:
-                        p.setQuestCompletion(questNums[questIndex], true);
-                        cm.rewardPlayer();
+                        cm.rewardPlayer(id);
                         cm.gainFame(12);
-                        p.sendHint(cm.randomText(6));
                         cm.dispose();
                         return;
                 }
@@ -244,13 +232,13 @@ function action(mode, type, selection) {
             }
             break;
         case 1:
-            if (!cm.onQuest()) {
+            if (!cm.onQuest(id)) {
                 switch (status) {
                     case 0:
-                        cm.sendSimple(cm.selectQuest(questIds[questIndex], "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
+                        cm.sendSimple(cm.selectQuest(id, "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
                         break;
                     case 1:
-                        cm.sendSimple(p.getCQuest().getInfo() + "\r\n\r\n#L0#Yeah, pretty much just everything. I regret everything.#l\r\n#L1#I mean, yeah, there were a few things...#l\r\n#L2#Nah. Not really.#l");
+                        cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Yeah, pretty much just everything. I regret everything.#l\r\n#L1#I mean, yeah, there were a few things...#l\r\n#L2#Nah. Not really.#l");
                         break;
                     case 2:
                         selection1 = selection;
@@ -325,29 +313,31 @@ function action(mode, type, selection) {
                                 cm.dispose();
                                 return;
                             default:
-                                cm.startCQuest(questIds[questIndex]);
+                                if (!cm.startCQuest(id)) {
+                                    cm.sendOk(cm.randomText(8));
+                                }
                                 cm.dispose();
                                 return;
                         }
                         break;
                     case 6:
-                        cm.startCQuest(questIds[questIndex]);
+                        if (!cm.startCQuest(id)) {
+                            cm.sendOk(cm.randomText(8));
+                        }
                         cm.dispose();
                         return;
                     default:
                         cm.dispose();
                         return;
                 }
-            } else if (cm.onQuest(questIds[questIndex]) && cm.canComplete()) {
+            } else if (cm.canComplete(id)) {
                 switch (status) {
                     case 0:
                         cm.sendOk("#ethe old man almost seems to nod#n");
                         break;
                     case 1:
-                        p.setQuestCompletion(questNums[questIndex], true);
-                        cm.rewardPlayer();
+                        cm.rewardPlayer(id);
                         cm.gainFame(15);
-                        p.sendHint(cm.randomText(6));
                         cm.dispose();
                         return;
                 }
@@ -358,13 +348,13 @@ function action(mode, type, selection) {
             }
             break;
         case 2:
-            if (!cm.onQuest()) {
+            if (!cm.onQuest(id)) {
                 switch (status) {
                     case 0:
-                        cm.sendSimple(cm.selectQuest(questIds[questIndex], "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
+                        cm.sendSimple(cm.selectQuest(id, "#econtinues reading silently as the ancient scroll in his hand slowly, but actively, falls to dust#n"));
                         break;
                     case 1:
-                        cm.sendSimple(p.getCQuest().getInfo() + "\r\n\r\n#L0#Oh... so, um, what does that mean, then?#l\r\n#L1#Oh, let me guess... now you want me to hunt for some washing powder or some shit.#l");
+                        cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Oh... so, um, what does that mean, then?#l\r\n#L1#Oh, let me guess... now you want me to hunt for some washing powder or some shit.#l");
                         break;
                     case 2:
                         switch (selection) {
@@ -418,23 +408,21 @@ function action(mode, type, selection) {
                         }
                         break;
                     case 6:
-                        cm.startCQuest(questIds[questIndex]);
+                        cm.startCQuest(id);
                         cm.dispose();
                         return;
                     default:
                         cm.dispose();
                         return;
                 }
-            } else if (cm.onQuest(questIds[questIndex]) && cm.canComplete()) {
+            } else if (cm.canComplete(id)) {
                 switch (status) {
                     case 0:
                         cm.sendOk("#ethe old man stares at you intensely#n\r\n\r\n#e#rOblivion is upon us.#k#n");
                         break;
                     case 1:
-                        p.setQuestCompletion(questNums[questIndex], true);
-                        cm.rewardPlayer();
+                        cm.rewardPlayer(id);
                         cm.gainFame(18);
-                        p.sendHint(cm.randomText(6));
                         cm.dispose();
                         return;
                 }

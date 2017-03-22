@@ -1,8 +1,12 @@
 /*
  * Malady
+ * Kerning City
  * ID: 9201028
+ *
  * Quest IDs: 2000, 2001
  */
+
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
 var ids = [2000, 2001];
@@ -13,7 +17,8 @@ function start() {
     action(1, 0, 0);
 }
 
-function action (mode, type, selection) {
+function action(mode, type, selection) {
+    var p = cm.getPlayer();
     if (mode === -1) {
         cm.dispose();
         return;
@@ -27,31 +32,32 @@ function action (mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(ids[0]) && !cm.onQuest(ids[1])) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
-            } else if (ids[0] - 2000 === cm.getStoryPoints()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[0])) {
                 cm.sendSimple(cm.selectQuest(ids[0], "Aheeheeheeeeeeee! "));
-            } else if (ids[1] - 2000 === cm.getStoryPoints()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[1])) {
                 cm.sendSimple(cm.selectQuest(ids[1], "Aheeheeheehooheeheeeee~! "));
             } else {
                 cm.sendOk("Aheeheeheeeeeeee!");
                 cm.dispose();
+                return;
             }
         } else if (status === 1) {
             if (mode === 0) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
                 return;
-            } else if (ids[0] - 2000 === cm.getStoryPoints()) {
-                cm.sendSimple(cm.getPlayer().getCQuest().loadInfo(ids[0]) + "\r\n\r\n#L0#Just doing a little spying around.#l\r\n#L1#I was wondering if maybe you wanted some help with the brew you're making.#l\r\n#L2#I dunno. It smells good over here.#l");
-            } else if (ids[1] - 2000 === cm.getStoryPoints()) {
-                cm.sendAcceptDecline(cm.getPlayer().getCQuest().loadInfo(ids[1]));
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[0])) {
+                cm.sendSimple(MapleCQuests.loadQuest(ids[0]).getInfo() + "\r\n\r\n#L0#Just doing a little spying around.#l\r\n#L1#I was wondering if maybe you wanted some help with the brew you're making.#l\r\n#L2#I dunno. It smells good over here.#l");
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[1])) {
+                cm.sendAcceptDecline(MapleCQuests.loadQuest(ids[1]).getInfo());
             }
         } else if (status === 2) {
-            if (ids[0] - 2000 === cm.getStoryPoints()) {
+            if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[0])) {
                 if (selection === 0) {
                     cm.sendOk("Ach! What is wrong with you?\r\n\r\n#eGet out!#n");
                     cm.dispose();
@@ -63,38 +69,35 @@ function action (mode, type, selection) {
                     cm.dispose();
                     return;
                 }
-            } else if (ids[1] - 2000 === cm.getStoryPoints()) {
-                cm.startCQuest(ids[1]);
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[1])) {
+                if (!cm.startCQuest(ids[1])) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
         } else if (status === 3) {
-            cm.startCQuest(ids[0]);
+            if (!cm.startCQuest(ids[0])) {
+                cm.sendOk(cm.randomText(8));
+            }
             cm.dispose();
             return;
         }
-    } else if (!cm.onQuest(ids[0]) && !cm.onQuest(ids[1])) {
-        if (status === 0) {
-            cm.sendYesNo(cm.randomText(4) + cm.getPlayer().getCQuest().getTitle() + cm.randomText(5));
-        } else if (status === 1) {
-            cm.startCQuest(0);
-            cm.dispose();
-        }
-    } else if (cm.onQuest(ids[0]) && cm.canComplete()) {
+    } else if (cm.canComplete(ids[0])) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(ids[0], "Aheeheeheeeeeeee! "));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("Aheeheehee... Thank you, my child. "));
+            cm.sendOk(cm.showReward(ids[0], "Aheeheehee... Thank you, my child. "));
         } else if (status === 2) {
-            cm.rewardPlayer(0, 1);
-            cm.getPlayer().sendHint(cm.randomText(6));
+            cm.rewardPlayer(ids[0]);
             cm.dispose();
+            return;
         }
-    } else if (cm.onQuest(ids[1]) && cm.canComplete()) {
+    } else if (cm.canComplete(ids[1])) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(ids[1], "Aheeheeheehooheeheeeee~!"));
         } else if (status === 1) {
-            cm.sendNext(cm.showReward("Ah! Thanks, kid.\r\n\r\nOh -- and one more thing..."));
+            cm.sendNext(cm.showReward(ids[1], "Ah! Thanks, kid.\r\n\r\nOh -- and one more thing..."));
         } else if (status === 2) {
             var rewardlist = "";
             var i = 0;
@@ -105,38 +108,25 @@ function action (mode, type, selection) {
             cm.sendSimple("Pick one, my sweet child:\r\n\r\n" + rewardlist);
         } else if (status === 3) {
             cm.gainItem(rewards[selection], 1);
-            cm.rewardPlayer(0, 1);
-            cm.getPlayer().sendHint(cm.randomText(6));
+            cm.rewardPlayer(ids[1]);
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(ids[0]) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(ids[0], "Aheeheeheeeeeeee! "));
             }
+            cm.sendSimple(cm.selectQuest(ids[1], "Aheeheeheehooheeheeeee~!"));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
-            cm.dispose();
-        }
-    } else if (cm.onQuest(ids[1]) && !cm.canComplete()) {
-        if (status === 0) {
-            if (mode === 0) {
-                cm.dispose();
-                return;
-            } else {
-                cm.sendSimple(cm.selectQuest(ids[1], "Aheeheeheehooheeheeeee~!"));
+            if (!cm.forfeitCQuestById(ids[1])) {
+                cm.sendOk(cm.randomText(9));
             }
-        } else if (status === 1) {
-            cm.sendYesNo(cm.randomText(7));
-        } else if (status === 2) {
-            cm.startCQuest(0);
             cm.dispose();
+            return;
         }
     }
 }
