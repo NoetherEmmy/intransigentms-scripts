@@ -4,6 +4,8 @@
  * Quest ID: 2015
  */
 
+var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
 var status;
 var id = 2015;
 
@@ -12,7 +14,8 @@ function start() {
     action(1, 0, 0);
 }
 
-function action (mode, type, selection) {
+function action(mode, type, selection) {
+    var p = cm.getPlayer();
     if (mode === -1) {
         cm.dispose();
         return;
@@ -26,13 +29,13 @@ function action (mode, type, selection) {
     } else {
         status--;
     }
-    if (!cm.onQuest()) {
+    if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
                 return;
-            } else if (id - 2000 === cm.getStoryPoints()) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                 cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             } else {
                 cm.sendOk(cm.randomText(1));
@@ -45,7 +48,7 @@ function action (mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendSimple(cm.getPlayer().getCQuest().loadInfo(id) + "\r\n\r\n#L0#What?!#l\r\n#L1#Aaaaaaaaaaaa get the fuck away from me!#l\r\n#L2#(walk faster)#l");
+                cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#What?!#l\r\n#L1#Aaaaaaaaaaaa get the fuck away from me!#l\r\n#L2#(walk faster)#l");
             }
         } else if (status === 2) {
             if (mode === 0) {
@@ -68,43 +71,47 @@ function action (mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.startCQuest(id);
+                if (!cm.startCQuest(id)) {
+                    cm.sendOk(cm.randomText(8));
+                }
                 cm.dispose();
                 return;
             }
         }
     } else if (!cm.onQuest(id)) {
         if (status === 0) {
-            cm.sendYesNo(cm.randomText(4) + cm.getPlayer().getCQuest().getTitle() + cm.randomText(5));
+            cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
         } else if (status === 1) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
         } else if (status === 1) {
-            cm.sendOk(cm.showReward("Ah! Excellent!"));
+            cm.sendOk(cm.showReward(id, "Ah! Excellent!"));
         } else if (status === 2) {
-            cm.rewardPlayer(0, 1);
+            cm.rewardPlayer(id);
             cm.gainFame(9);
-            cm.getPlayer().sendHint(cm.randomText(6));
             cm.dispose();
             return;
         }
-    } else if (cm.onQuest(id) && !cm.canComplete()) {
+    } else {
         if (status === 0) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             }
+            cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {
-            cm.startCQuest(0);
+            if (!cm.forfeitCQuestById(id)) {
+                cm.sendOk(cm.randomText(9));
+            }
             cm.dispose();
             return;
         }

@@ -6,8 +6,6 @@
  */
 
 var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
-var Toml            = Java.type("com.moandjiezana.toml.Toml");
-var FileInputStream = Java.type("java.io.FileInputStream");
 
 var status;
 var ids = [4000, 4001, 4002, 4003, 4004];
@@ -90,7 +88,8 @@ function action(mode, type, selection) {
                 cm.sendOk("Bye, then.");
                 cm.dispose();
                 return;
-            } else if (contains(ids, id)) {
+            }
+            if (contains(ids, id)) {
                 if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
                     cm.sendSimple(cm.selectQuest(id, "I can train you to bolster yourself, and your party members."));
                 } else {

@@ -1,4 +1,3 @@
-load('nashorn:mozilla_compat.js');
 /*
  * Chef
  * Lith Harbor proper
@@ -6,24 +5,23 @@ load('nashorn:mozilla_compat.js');
  * ID: 1002006
  */
  
-var status = 0;
+var status;
+var MapleStat = Java.type("net.sf.odinms.client.MapleStat");
 
 function start() {
-	status = -1;
-	action(1, 0, 0);
+    status = -1;
+    action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
-	status++;
-
-	if (status == 0) {
-		//cm.sendSimple("#L0#Option 0#l\r\n#L1#Option 1#l");
-		cm.sendOk("I'm the Chef around here.\r\n\r\nIs it a food item? I'll make the shit out of it.");
-		cm.dispose();
-		return;
-	} else if (status == 1) {
-		cm.sendOk("selection: " + String(selection));
-		cm.dispose();
-		return;
-	}
+    status++;
+    if (status === 0) {
+        cm.sendOk("I'm the Chef around here.\r\n\r\nIs it a food item? I'll make the shit out of it.");
+        cm.dispose();
+        return;
+    } else if (status === 1) {
+        cm.sendOk("selection = " + selection);
+        cm.dispose();
+        return;
+    }
 }
