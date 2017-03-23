@@ -104,13 +104,7 @@ function action(mode, type, selection) {
             cm.dispose();
             return;
         }
-    } else if (
-        cm.onQuest(id) &&
-        (
-            p.hasCompletedCQuestGoal(id, mobId1, 0, "") ||
-            p.hasCompletedCQuestGoal(id, mobId2, 0, "")
-        )
-    ) {
+    } else if (cm.canComplete(id)) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "..."));
         } else if (status === 1) {

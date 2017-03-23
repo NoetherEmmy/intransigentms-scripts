@@ -617,7 +617,7 @@ var feats =
         id: 25,
         desc: "Completed every quest in the Teddius/Trojanus group.",
         req: function(p) {
-            return groups.Teddius/Trojanus.every(function(qid) { return p.completedCQuest(qid); });
+            return groups["Teddius/Trojanus"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
             var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
@@ -954,9 +954,19 @@ function getFeatEntryById(fid) {
 
 function jsArray(collection) {
     var a = [];
-    collection.forEach(function(o) {
-        a.push(o);
-    });
+    if (collection instanceof Java.type("java.util.Collection")) {
+        collection.forEach(function(o) {
+            a.push(o);
+        });
+    } else if (collection instanceof Java.type("java.util.Map")) {
+        collection.entrySet().forEach(function(e) {
+            a.push(e);
+        });
+    } else {
+        throw new TypeError(
+            "Argument to jsArray should be a java.util.Collection or a java.util.Map."
+        );
+    }
     return a;
 }
 
