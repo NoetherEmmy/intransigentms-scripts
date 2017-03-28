@@ -56,7 +56,7 @@ function action(mode, type, selection) {
         if (status === 0) {
             cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
         } else if (status === 1) {
-            if (!cm.forfeitCQuestById(id)) {
+            if (!p.forfeitCQuestById(id)) {
                 cm.sendOk(cm.randomText(9));
             }
             cm.dispose();

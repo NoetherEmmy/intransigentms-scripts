@@ -51,17 +51,15 @@ function action(mode, type, selection) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendYesNo(MapleCQuests.loadQuest(id).getInfo());
             }
+            cm.sendYesNo(MapleCQuests.loadQuest(id).getInfo());
         } else if (status === 2) {
             if (mode === 0) {
                 cm.sendOk("Whatever.");
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple("Well, too bad. We don't have any more targets and backstops to put on the range. All the ones back here are busted.\r\n\r\n#L0#Well, shit.#l\r\n#L1#Need some help replacing them?#l");
             }
+            cm.sendSimple("Well, too bad. We don't have any more targets and backstops to put on the range. All the ones back here are busted.\r\n\r\n#L0#Well, shit.#l\r\n#L1#Need some help replacing them?#l");
         } else if (status === 3) {
             if (selection === 0) {
                 cm.sendOk("Yep.");
@@ -95,7 +93,7 @@ function action(mode, type, selection) {
         if (status === 0) {
             cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
         } else if (status === 1) {
-            if (!cm.forfeitCQuestById(id)) {
+            if (!p.forfeitCQuestById(id)) {
                 cm.sendOk(cm.randomText(9));
             }
             cm.dispose();
@@ -116,9 +114,8 @@ function action(mode, type, selection) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             }
+            cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {

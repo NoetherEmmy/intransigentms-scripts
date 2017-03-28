@@ -12,8 +12,9 @@ var ids = [2016, 2017];
 var id = 0;
 
 function start() {
+    var p = cm.getPlayer();
     for (var i = 0; i < ids.length; ++i) {
-        if (p.hasOpenCQuestSlot() && p.canBeginCQuest(ids[i])) {
+        if (p.canBeginCQuest(ids[i])) {
             id = ids[i];
             break;
         }
@@ -43,7 +44,7 @@ function action(mode, type, selection) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
                 return;
-            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id) && id !== 0) {
                 cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             } else {
                 cm.sendOk(cm.randomText(1));
@@ -55,9 +56,8 @@ function action(mode, type, selection) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
                 return;
-            } else {
-                cm.sendAcceptDecline(MapleCQuests.loadQuest(id).getInfo());
             }
+            cm.sendAcceptDecline(MapleCQuests.loadQuest(id).getInfo());
         } else if (status === 2) {
             if (mode === 0) {
                 cm.sendOk(cm.randomText(3));

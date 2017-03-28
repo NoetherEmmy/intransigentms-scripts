@@ -21,7 +21,7 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    if (!p.hasOpenCQuestSlot() || !p.canBeginCQuest(id)) {
+    if (!cm.onQuest(id) && (!p.hasOpenCQuestSlot() || !p.canBeginCQuest(id))) {
         if (mode === 1) {
             status++;
         } else if (type === 0 && mode === 0) {

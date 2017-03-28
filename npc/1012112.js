@@ -118,7 +118,7 @@ function action(mode, type, selection) {
                 cm.sendYesNo(cm.randomText(4) + MapleCQuests.loadQuest(id).getTitle() + cm.randomText(5));
                 break;
             case 1:
-                if (!cm.forfeitCQuestById(id)) {
+                if (!p.forfeitCQuestById(id)) {
                     cm.sendOk(cm.randomText(9));
                 }
                 cm.dispose();
@@ -127,7 +127,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
         }
-    } else if (cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         switch (status) {
             case 0:
                 cm.sendSimple(cm.selectQuest(id, "#elooks visibly depressed#n"));

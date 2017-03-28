@@ -12,6 +12,7 @@ var ids = [2018, 2019];
 var id = 0;
 
 function start() {
+    var p = cm.getPlayer();
     for (var i = 0; i < ids.length; ++i) {
         if (p.canBeginCQuest(ids[i])) {
             id = ids[i];
@@ -43,7 +44,7 @@ function action(mode, type, selection) {
                 cm.sendOk(cm.randomText(3));
                 cm.dispose();
                 return;
-            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id)) {
+            } else if (p.hasOpenCQuestSlot() && p.canBeginCQuest(id) && id !== 0) {
                 cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             } else {
                 cm.sendOk(cm.randomText(1));
@@ -96,9 +97,8 @@ function action(mode, type, selection) {
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
             }
+            cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {

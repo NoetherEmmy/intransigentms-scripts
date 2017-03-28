@@ -147,9 +147,9 @@ function action(mode, type, selection) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(ids[questIndex], "#efiddles around with settings on gun#n"));
         } else if (status === 1) {
-            cm.sendNext(cm.showReward(id, "Well, I'll be damned. Ya did it, kid."));
+            cm.sendNext(cm.showReward(ids[questIndex], "Well, I'll be damned. Ya did it, kid."));
         } else if (status === 2) {
-            cm.rewardPlayer(id);
+            cm.rewardPlayer(ids[questIndex]);
             cm.gainFame(8);
             cm.dispose();
             return;

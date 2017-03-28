@@ -71,6 +71,7 @@ function action (mode, type, selection) {
             cm.dispose();
             return;
         }
+        return;
     } else if (cm.onQuest(id)) {
         cm.sendOk("You should go back and see #bSeppy#k. She will want to know who you've killed.");
         cm.dispose();

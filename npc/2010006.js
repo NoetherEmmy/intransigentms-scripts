@@ -132,7 +132,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
         }
-    } else if (cm.canComplete()) {
+    } else if (cm.canComplete(id)) {
         switch (status) {
             case 0:
                 cm.sendSimple(cm.selectQuest(id, "#eappears to be busy being angry#n"));
@@ -154,9 +154,8 @@ function action(mode, type, selection) {
                 if (mode === 0) {
                     cm.dispose();
                     return;
-                } else {
-                    cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
                 }
+                cm.sendSimple(cm.selectQuest(id, cm.randomText(1)));
                 break;
             case 1:
                 cm.sendYesNo(cm.randomText(7));
