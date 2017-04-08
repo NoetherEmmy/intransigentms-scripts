@@ -4,17 +4,29 @@
  * ID: 9120103
  */
 
+/*
 var status;
 var tempSelection = -1;
 var essences = [4031762, 4031755, 4031750, 4031764, 4031753, 4031756];
-var tomes = [4031056, 4161002, 4031157, 4031158, 4031159, 4031900];
-var tomeUpgrades = [50, 80, 100, 120, 140];
+var tomes    = [4031056, 4161002, 4031157, 4031158, 4031159, 4031900];
+var tomeUpgrades = [70, 90, 120, 150, 200];
 var prizes =
 [
-    [2022344, 2,  7], [2022340, 2,  3], [5220000, 4,  3], [2022277, 4,  2],
-    [2022181, 6,  1], [2022283, 10, 1], [2022179, 10, 1], [2022121, 13, 1],
-    [2049100, 13, 1], [2340000, 17, 1], [2049004, 30, 1], [2049122, 56, 1],
-    [4031519, 76, 1]
+    [2022344, 5,  7], [2022340, 5,  3], [5220000, 10, 3], [2022277, 10,  2],
+    [2022181, 14, 1], [2022283, 22, 1], [2022179, 22, 1], [2022121, 28,  1],
+    [2049100, 28, 1], [2340000, 34, 1], [2049004, 50, 1], [4031519, 132, 1]
+];
+*/
+
+var status;
+var sayings = [
+    "Shhhhhhhh! People are reading...",
+    "Late fees are 50 mesos per day, so don't delay!",
+    "#egives you a stern look, index finger extended and crossing over lips#n",
+    "'Posterior Analytics'? Hehehe... sounds like my kind of logic!",
+    "All I ask is that you remain quiet when you're here in the library... unless you read something #ereally#n funny.",
+    "'The Gay Science'? Mmmmm, I'll have to check this one out, um, later...",
+    "'Left Wing Communism: An Infantile Disorder'?\r\nOh, Lenin... I thought I knew you so well."
 ];
 
 function start() {
@@ -22,6 +34,30 @@ function start() {
     action(1, 0, 0);
 }
 
+function action(mode, type, selection) {
+    var p = cm.getPlayer();
+    if (mode < 0) {
+        cm.dispose();
+        return;
+    }
+    if (mode === 1) {
+        status++;
+    } else {
+        status--;
+    }
+
+    switch (status) {
+        case 0:
+            cm.sendOk(chooseRandom(sayings));
+            cm.dispose();
+            return;
+        default:
+            cm.dispose();
+            return;
+    }
+}
+
+/*
 function action(mode, type, selection) {
     var p = cm.getPlayer();
     var msg, i;
@@ -42,8 +78,8 @@ function action(mode, type, selection) {
     } else if (status === 1) {
         tempSelection = selection;
         if (selection === 0) {
-            if (p.getLevel() < 30) {
-                cm.sendOk("You're not level 30 yet! Better start learning how to read, kiddo.");
+            if (!p.hasFeat(12)) {
+                cm.sendOk("Better start learning how to read, kiddo.");
                 cm.dispose();
                 return;
             }
@@ -51,7 +87,7 @@ function action(mode, type, selection) {
                 cm.gainItem(3010117, 1);
             }
             if (cm.itemQuantity(4031056) < 1) {
-                cm.gainItem(4031056);
+                cm.gainItem(4031056, 1);
             }
             cm.sendOk("There ya go! All set.");
             cm.dispose();
@@ -216,3 +252,4 @@ function action(mode, type, selection) {
         }
     }
 }
+*/

@@ -17,6 +17,7 @@ var trickortreating = false;
 var trickortreatchance = 0.08;
 var trickortreatprizes = [1002546, 1052155, 1072387];
 var markOfTheBeta = 1002419;
+var markOfTheGamma = 1002475;
 
 var eventon = false;
 
@@ -37,9 +38,9 @@ function action(mode, type, selection) {
         case 0:
             var initdialog;
             if (eventon) {
-                initdialog = "Hey there! I'm Jean, the Event Assistant. Right now we're holding an event called:\r\n\r\n#e#r" + eventname + "#k#n\r\n\r\n#L0#What's the event about?#l\r\n#L4#How much are the different colored presents worth?#l\r\n#L1#I'd like to trade in some presents.#l\r\n#L2#How do I use an EXP bonus?#l\r\n#L3#I was a beta tester.#l";
+                initdialog = "Hey there! I'm Jean, the Event Assistant. Right now we're holding an event called:\r\n\r\n#e#r" + eventname + "#k#n\r\n\r\n#L0#What's the event about?#l\r\n#L4#How much are the different colored presents worth?#l\r\n#L1#I'd like to trade in some presents.#l\r\n#L2#How do I use an EXP bonus?#l\r\n#L3#I was a beta tester.#l\r\n#L5#I was a gamma tester.#l";
             } else {
-                initdialog = "Hey there! I'm Jean, the Event Assistant. Right now we're not holding any events.\r\n\r\n#L4#Trick or treat!#l\r\n#L1#I'd like to trade in some presents.#l\r\n#L2#How do I use an EXP bonus?#l\r\n#L3#I was a beta tester.#l";
+                initdialog = "Hey there! I'm Jean, the Event Assistant. Right now we're not holding any events.\r\n\r\n#L4#Trick or treat!#l\r\n#L1#I'd like to trade in some presents.#l\r\n#L2#How do I use an EXP bonus?#l\r\n#L3#I was a beta tester.#l\r\n#L5#I was a gamma tester.#l";
             }
             cm.sendSimple(initdialog);
             break;
@@ -104,6 +105,9 @@ function action(mode, type, selection) {
                            "#";
                     cm.sendPrev(msg);
                     break;
+                case 5:
+                    gammaTester(p);
+                    return;
                 default:
                     cm.sendOk("Report this error to a GM. (#d@gm <message>#k)");
                     cm.dispose();
@@ -156,6 +160,34 @@ function betaTester(p) {
     }
 }
 
+function gammaTester(p) {
+    if (cm.getGammaTester()) {
+        cm.gainItem(markOfTheGamma);
+        cm.gainItem(3992005);
+        cm.gainItem(5390000, 3);
+        cm.gainItem(5390001, 3);
+        cm.gainItem(5390002, 3);
+        cm.gainItem(5041000, 10);
+        cm.gainItem(5060000, 5);
+        cm.gainItem(5220000, 5);
+        cm.modifyNx(25000);
+        p.setVotePoints(p.getVotePoints() + 15);
+        p.dropMessage(5, "You have gained 15 vote points.");
+        cm.sendOk("Thank you so much for participating in the #dIntransigentMS#k gamma! I've given you:\r\n\r\n#i" + markOfTheGamma + "#\r\n#i3992005#\r\n#i5390000#  x3\r\n#i5390001#  x3\r\n#i5390002#  x3\r\n#i5041000#  x10\r\n#i5060000#  x5\r\n#i5220000#  x5\r\n\r\n#r25,000 NX#k\r\n\r\n#b15 vote points#k");
+        cm.dispose();
+        return;
+    } else {
+        if (cm.gammaTester() >= 0 && !cm.haveItem(markOfTheGamma, 1, true, true)) {
+            cm.gainItem(markOfTheGamma);
+            cm.sendOk("Thanks for gamma testing #e#dIntransigentMS#k#n! Here you go:\r\n\r\n#i" + markOfTheGamma + "#");
+        } else {
+            cm.sendOk("It looks like you either aren't a gamma tester or you have already redeemed your prizes!");
+        }
+        cm.dispose();
+        return;
+    }
+}
+
 function trickOrTreat(selection) {
     if (cm.itemQuantity(halloweencandy) < selection) {
         cm.sendOk("#eit doesn't look like you've actually got that many candies#n");
@@ -197,10 +229,10 @@ function trickOrTreat(selection) {
 var presents = [4031439, 4031440, 4031441, 4031442, 4031443];
 var presentrewards =
 [
-    [2022340, 4, 3],  [5220000, 4, 3],  [2022344, 4, 5],  [2022277, 8, 4],
-    [2022181, 8, 2],  [2022283, 12, 1], [2022179, 12, 1], [2022273, 16, 1],
+    [2022340, 4,  3], [5220000, 4,  3], [2022344, 4,  5], [2022277, 8,  4],
+    [2022181, 8,  2], [2022283, 12, 1], [2022179, 12, 1], [2022273, 16, 1],
     [2022121, 16, 1], [2049100, 20, 1], [2340000, 60, 1], [2049004, 60, 1],
-    [2049122, 75, 1], [0, 80, 1],       [4031519, 80, 1]//, [5211000, 90, 1]
+    [2049122, 75, 1], [0,       80, 1], [4031519, 80, 1]//, [5211000, 90, 1]
 ];
 presentrewards.sort(function(r1, r2) {
     return r1[1] - r2[2];

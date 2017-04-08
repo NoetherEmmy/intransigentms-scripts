@@ -19,7 +19,6 @@ var skills =
         [2321006, 10]
     ]
 ];
-var qualifies;
 var reward;
 
 function contains(a, o) {
@@ -31,8 +30,8 @@ function contains(a, o) {
 
 function start() {
     var p = cm.getPlayer();
-    id = (p.getMasterLevelById(2321008) > 0) ? 7001 : 7000;
-    if (id === 7001 && p.getMasterLevelById(2321006) > 0) {
+    id = p.canBeginCQuest(7001) ? 7001 : 7000;
+    if (id === 7000 && !p.canBeginCQuest(7000)) {
         id = 7002;
     }
     status = -1;
@@ -120,14 +119,7 @@ function action(mode, type, selection) {
                     break;
                 }
             }
-            qualifies = true;
-            if (qualifies) {
-                cm.sendOk(cm.showReward(id, "Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n"));
-            } else {
-                cm.sendOk("You don't have the requisite skill master levels to complete this quest! Come back to me when you've got a master level of at least #b" + (reward[1] - 10) + "#k in the #r" + cm.getSkillNameById(reward[0]) + "#k skill.");
-                cm.dispose();
-                return;
-            }
+            cm.sendOk(cm.showReward(id, "Excellent. Excercise this newfound strength wisely." + (!reward ? "" : "\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n")));
         } else if (status === 2) {
             cm.rewardPlayer(id);
             cm.dispose();

@@ -2,66 +2,73 @@
  * Chrishrama
  * Beyond The Grave | Purgatory
  * ID: 1061000
+ *
  * Death NPC
  */
 
-load('nashorn:mozilla_compat.js');
-
-importPackage(Packages.net.sf.odinms.client);
+var Arrays   = Java.type("java.util.Arrays");
+var IntArray = Java.type("int[]");
+var MapleJob = Java.type("net.sf.odinms.client.MapleJob");
 
 var status;
-var heirloomcount = 1;
-var pastlife, pastlifelevel;
-var itemplural = "items";
-var thisplural = "these items";
+var heirloomCount = 1;
+var pastLife, pastLifeLevel;
+var itemPlural = "items";
+var thisPlural = "these items";
 var heirlooms = 0;
-var leavebehind = [];
-var firsttime = true;
-var ranout = false;
+var leaveBehind;
+var firstTime = true;
+var ranOut = false;
 
 function start() {
-    pastlife = cm.getPlayer().getLastPastLife().orElse(null);
-    if (!pastlife) {
+    pastLife = cm.getPlayer().getLastPastLife().orElse(null);
+    if (!pastLife) {
         cm.dispose();
         return;
     }
-    pastlifelevel = pastlife.get(0).intValue();
-    if (pastlifelevel >= 120) {
-        heirloomcount = 4;
-    } else if (pastlifelevel >= 70) {
-        heirloomcount = 3;
-    } else if (pastlifelevel >= 30) {
-        heirloomcount = 2;
+    pastLifeLevel = pastLife.get(0).intValue();
+    if (pastLifeLevel >= 200) {
+        heirloomCount = 5;
+    } else if (pastLifeLevel >= 120) {
+        heirloomCount = 4;
+    } else if (pastLifeLevel >= 70) {
+        heirloomCount = 3;
+    } else if (pastLifeLevel >= 30) {
+        heirloomCount = 2;
     } else {
-        heirloomcount = 1;
-        itemplural = "item";
-        thisplural = "this item";
+        heirloomCount = 1;
+        itemPlural = "item";
+        thisPlural = "this item";
     }
-    
+
+    leaveBehind = new IntArray(heirloomCount);
+    Arrays.fill(leaveBehind, -1);
+
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
+    var p = cm.getPlayer();
     status++;
-    
-    if (status >= 6 && heirlooms < heirloomcount && !ranout) {
+
+    if (status >= 6 && heirlooms < heirloomCount && !ranOut) {
         status = 5;
-        firsttime = false;
+        firstTime = false;
     }
-    
+
     if (status === 0) {
         cm.sendOk("#eWelcome to purgatory, #h #.#n You've fought tirelessly, but it's now that you must rest; you have no choice.");
     } else if (status === 1) {
-        cm.resetMaxHpMp(cm.getC());
-        cm.sendOk("\"...But I would \r\nnot have you, reader, be deflected from \r\nyour good resolve by hearing from me now \r\nhow God would have us pay the debt we owe. \r\n#bDon't dwell upon the form of punishment#k: \r\nconsider what comes after that; at worst \r\nit cannot last beyond the final Judgment.\" \r\n \t \t (Dante, \"#ePurgatorio#n\" Canto X, 105-111)");
+        cm.resetMaxHpMp();
+        cm.sendOk("\"...But I would\r\nnot have you, reader, be deflected from\r\nyour good resolve by hearing from me now\r\nhow God would have us pay the debt we owe.\r\n#bDon't dwell upon the form of punishment#k:\r\nconsider what comes after that; at worst\r\nit cannot last beyond the final Judgment.\"\r\n \t \t (Dante, \"#ePurgatorio#n\" Canto X, 105-111)");
     } else if (status === 2) {
         cm.sendOk(
-            "Consider your achievements: \r\n\r\nYou were able to attain #b" +
-            ((pastlife.get(0) !== null && pastlife.get(0).intValue() !== 0) ? pastlife.get(0).intValue() : "???") +
-            "#k levels as a #d" +
-            (cm.getPlayer().getJobAchieved() !== null ? cm.getPlayer().getJobAchieved().name() : "???") +
-            "#k."
+            "Consider your achievements:\r\n\r\nYou were able to attain #b" +
+                (pastLife.get(0).intValue() !== 0 ? pastLife.get(0).intValue() : "???") +
+                "#k levels as a #d" +
+                (pastLife.get(1) !== null ? MapleJob.getJobName(pastLife.get(1)) : "???") +
+                "#k."
         );
     } else if (status === 3) {
         cm.sendOk("Fortunately, you have an heir who wishes to follow in your footsteps. It is now that you must bequeath to your successor what you can salvage.");
@@ -69,55 +76,48 @@ function action(mode, type, selection) {
         cm.gainMeso(Math.ceil(-0.7 * cm.getMeso())); // Takes away 70% of player's mesos as "death toll"
         cm.sendOk(
             "You must first pay the death toll, but after this you may bequeath your remaining wealth to your successor, along with exactly #b" +
-            heirloomcount +
-            "#k heirloom " +
-            itemplural +
-            ", owing to the power you have achieved this life."
+                heirloomCount +
+                "#k heirloom " +
+                itemPlural +
+                ", owing to the power you have achieved this life."
         );
     } else if (status === 5) {
-        if (!firsttime) {
-            if (selection < 0) {
-                selection = 0;
-            }
-            leavebehind.push(selection);
+        if (!firstTime) {
+            leaveBehind[heirlooms - 1] = selection;
         }
-        cm.stripEquips(cm.getC());
-        var t = "Select a heirloom of your choice:\r\n\r\n" +
-                cm.equipList(cm.getC(), ((leavebehind.length >= 1) ? leavebehind[0] : -1), ((leavebehind.length >= 2) ? leavebehind[1] : -1), ((leavebehind.length >= 3) ? leavebehind[2] : -1), ((leavebehind.length >= 4) ? leavebehind[3] : -1));
-        if (t.length > 43) {
-            cm.sendSimple(t);
+        cm.stripEquips();
+        var selectText = "Select a heirloom of your choice:\r\n\r\n" + cm.equipList(leaveBehind);
+        if (selectText.length > 43) {
+            cm.sendSimple(selectText);
             heirlooms++;
         } else {
             cm.sendOk("You don't have any more items to keep.");
-            ranout = true;
+            ranOut = true;
         }
     } else if (status === 6) {
-        if (!ranout) {
-            if (selection < 0) {
-                selection = 0;
-            }
-            leavebehind.push(selection);
+        if (!ranOut) {
+            leaveBehind[heirlooms - 1] = selection;
         }
-        cm.clearItems(cm.getC(), ((leavebehind.length >= 1) ? leavebehind[0] : -1), ((leavebehind.length >= 2) ? leavebehind[1] : -1), ((leavebehind.length >= 3) ? leavebehind[2] : -1), ((leavebehind.length >= 4) ? leavebehind[3] : -1));
+        cm.clearItems(leaveBehind);
         cm.sendSimple(
             "Very well. Your heir will be grateful to recieve " +
-            thisplural +
-            ". It's now time to let them take the reins; pacis, mi.\r\n\r\n#L0#I'd like my heir to start in Henesys.#l\r\n#L1#I'd rather my heir start out on Maple Island.#l"
+                thisPlural +
+                ". It's now time to let them take the reins; pacis, mi.\r\n\r\n#L0#I'd like my heir to start in Henesys.#l\r\n#L1#I'd rather my heir start out on Maple Island.#l"
         );
-    } else if (status === 7) {
-        if (cm.getPlayer().getGender() === 0) {
-            cm.gainItem(1060002, 1);
-            cm.gainItem(1040010, 1);
+    } else if (status >= 7) {
+        if (p.getGender() === 0) {
+            cm.gainItem(1060002);
+            cm.gainItem(1040010);
         } else {
-            cm.gainItem(1061008, 1);
-            cm.gainItem(1041010, 1);
+            cm.gainItem(1061008);
+            cm.gainItem(1041010);
         }
-        cm.gainItem(1072005, 1);
-        cm.gainItem(1092003, 1);
+        cm.gainItem(1072005);
+        cm.gainItem(1092003);
         if (Math.random() < 0.5) {
-            cm.gainItem(1312004, 1);
+            cm.gainItem(1312004);
         } else {
-            cm.gainItem(1322005, 1);
+            cm.gainItem(1322005);
         }
         cm.gainItem(2000000, 12);
         cm.gainItem(2000003, 10);

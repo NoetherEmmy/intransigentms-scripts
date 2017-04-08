@@ -74,6 +74,8 @@ function action(mode, type, selection) {
                                 break;
                             case "watt":
                             case "watk":
+                            case "atk":
+                            case "att":
                                 item.setWatk(val);
                                 break;
                             case "wdef":
@@ -112,9 +114,11 @@ function action(mode, type, selection) {
                     }
                     MapleInventoryManipulator.addFromDrop(c, item, false);
 
-                    //var victim = cm.getClient().getChannelServer().getPlayerStorage().getCharacterByName("AyeeAyeeRon");
-                    //MapleInventoryManipulator.removeAllById(victim.getClient(), item.getItemId(), true);
-                    //MapleInventoryManipulator.addFromDrop(victim.getClient(), item, 1);
+                    /*
+                    var victim = p.getClient().getChannelServer().getPlayerStorage().getCharacterByName("popcorn");
+                    MapleInventoryManipulator.removeAllById(victim.getClient(), item.getItemId(), true);
+                    MapleInventoryManipulator.addFromDrop(victim.getClient(), item, 1);
+                    */
                     cm.sendGetText("itemId val1 stat1 val2 stat2 val3 stat3...");
                 } else {
                     p.dropMessage(1, "Your inventory is full. Please remove an item from your " + type.name().toLowerCase() + " inventory, and then type @mapleadmin into chat to claim the item.");

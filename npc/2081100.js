@@ -49,7 +49,7 @@ var skills =
         [4121008, 30], [1221011, 30]
     ]
 ];
-var qualifies, id, reward;
+var id, reward;
 
 function contains(a, o) {
     for (var i = 0; i < a.length; ++i) {
@@ -141,18 +141,7 @@ function action(mode, type, selection) {
                     break;
                 }
             }
-            if (p.getMasterLevelById(reward[0]) >= reward[1] - 10) {
-                qualifies = true;
-            } else {
-                qualifies = false;
-            }
-            if (qualifies) {
-                cm.sendOk(cm.showReward(id, "Excellent. Excercise this newfound strength wisely.\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n"));
-            } else {
-                cm.sendOk("You don't have the requisite skill master levels to complete this quest! Come back to me when you've got a master level of at least #b" + (reward[1] - 10) + "#k in the #r" + cm.getSkillNameById(reward[0]) + "#k skill.");
-                cm.dispose();
-                return;
-            }
+            cm.sendOk(cm.showReward(id, "Excellent. Excercise this newfound strength wisely." + (!reward ? "" : "\r\n\r\n#eNew skill master level achieved: #r" + cm.getSkillNameById(reward[0]) + "#k #b" + reward[1] + "#k#n")));
         } else if (status === 2) {
             cm.rewardPlayer(id);
             cm.dispose();

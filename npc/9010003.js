@@ -4,15 +4,11 @@
  * Quest manager
  */
 
-/* jshint ignore: start */
-// Array.prototype.find polyfill
-Array.prototype.find||Object.defineProperty(Array.prototype,"find",{value:function(a){if(null==this)throw new TypeError('"this" is null or not defined');var b=Object(this),c=b.length>>>0;if("function"!=typeof a)throw new TypeError("predicate must be a function");for(var d=arguments[1],e=0;e<c;){var f=b[e];if(a.call(d,f,e,b))return f;e++}}});
-/* jshint ignore: end */
-
 var CQuestStatus       = Java.type("net.sf.odinms.client.CQuestStatus");
 var Integer            = Java.type("java.lang.Integer");
 var MapleCQuests       = Java.type("net.sf.odinms.client.MapleCQuests");
 var MaplePacketCreator = Java.type("net.sf.odinms.tools.MaplePacketCreator");
+var StringUtil         = Java.type("net.sf.odinms.tools.StringUtil");
 
 var status;
 var branch, questSlot;
@@ -214,17 +210,13 @@ var feats =
                        .getAllQuestIds()
                        .stream()
                        .allMatch(function(qid) {
-                           return p.completedCQuest(qid);
+                           return qid === 0 || p.completedCQuest(qid);
                        });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            p.setQuestSlots(p.getQuestSlots() + 1);
+        },
+        rewardDesc: "Ability to erase any quest progress at will and thus redo quests anew. Adds 1 additional quest slot."
     },
     "Adventuresome completionist": {
         id: 1,
@@ -234,6 +226,7 @@ var feats =
                        .getAllQuestIds()
                        .stream()
                        .allMatch(function(qid) {
+                           if (qid === 0) return true;
                            return p.getCQuestStatus(qid)
                                    .getValue() >=
                                        CQuestStatus.ADVENTURESOME
@@ -241,13 +234,8 @@ var feats =
                        });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "Improves exchange ratio of maple leaves:gachapon tickets with Mia from 4:1 to 3:1."
     },
     "Valiant completionist": {
         id: 2,
@@ -257,6 +245,7 @@ var feats =
                        .getAllQuestIds()
                        .stream()
                        .allMatch(function(qid) {
+                           if (qid === 0) return true;
                            return p.getCQuestStatus(qid)
                                    .getValue() >=
                                        CQuestStatus.VALIANT
@@ -264,13 +253,9 @@ var feats =
                        });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(3992027);
+        },
+        rewardDesc: "1 Red Candle."
     },
     "Transcendent completionist": {
         id: 3,
@@ -280,6 +265,7 @@ var feats =
                        .getAllQuestIds()
                        .stream()
                        .allMatch(function(qid) {
+                           if (qid === 0) return true;
                            return p.getCQuestStatus(qid)
                                    .getValue() >=
                                        CQuestStatus.FEARLESS
@@ -287,13 +273,9 @@ var feats =
                        });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1112500);
+        },
+        rewardDesc: "1 Ring of Transcendence."
     },
     "The sampler": {
         id: 4,
@@ -306,13 +288,9 @@ var feats =
             });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            p.setQuestSlots(p.getQuestSlots() + 1);
+        },
+        rewardDesc: "Adds 1 additional quest slot."
     },
     "Henesys explorer": {
         id: 5,
@@ -321,13 +299,9 @@ var feats =
             return groups.Henesys.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2000005, 100);
+        },
+        rewardDesc: "100 Power Elixirs."
     },
     "Kerning City explorer": {
         id: 6,
@@ -336,13 +310,9 @@ var feats =
             return groups["Kerning City"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            p.setQuestSlots(p.getQuestSlots() + 1);
+        },
+        rewardDesc: "Adds 1 additional quest slot."
     },
     "Ellinia explorer": {
         id: 7,
@@ -351,13 +321,9 @@ var feats =
             return groups.Ellinia.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(5220000, 6);
+        },
+        rewardDesc: "6 Gachapon Tickets."
     },
     "Nautilus explorer": {
         id: 8,
@@ -366,13 +332,9 @@ var feats =
             return groups.Nautilus.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(5220000, 5);
+        },
+        rewardDesc: "5 Gachapon Tickets."
     },
     "Ludibrium explorer": {
         id: 9,
@@ -381,13 +343,9 @@ var feats =
             return groups.Ludibrium.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2049004);
+        },
+        rewardDesc: "1 Innocence Scroll."
     },
     "Mu Lung explorer": {
         id: 10,
@@ -396,13 +354,9 @@ var feats =
             return groups["Mu Lung"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040811, 5);
+        },
+        rewardDesc: "5 Scrolls for Gloves for ATT 30%."
     },
     "Showa Town explorer": {
         id: 11,
@@ -411,13 +365,9 @@ var feats =
             return groups["Showa Town"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040327, 5);
+        },
+        rewardDesc: "5 Scrolls for Earring for HP 30%."
     },
     "Perion explorer": {
         id: 12,
@@ -426,13 +376,9 @@ var feats =
             return groups.Perion.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(5220000, 6);
+        },
+        rewardDesc: "6 Gachapon Tickets."
     },
     "Amoria explorer": {
         id: 13,
@@ -441,13 +387,9 @@ var feats =
             return groups.Amoria.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022181, 3);
+        },
+        rewardDesc: "3 Victoria's Amorian Baskets."
     },
     "Singapore explorer": {
         id: 14,
@@ -456,13 +398,9 @@ var feats =
             return groups.Singapore.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040101, 3);
+        },
+        rewardDesc: "3 Scrolls for Face Accessory for HP 60%."
     },
     "Lith Harbor explorer": {
         id: 15,
@@ -471,13 +409,9 @@ var feats =
             return groups["Lith Harbor"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040204, 3);
+        },
+        rewardDesc: "3 Scrolls for Eye Accessory for Accuracy 70%."
     },
     "Masteria explorer": {
         id: 16,
@@ -486,13 +420,9 @@ var feats =
             return groups.Masteria.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1072387);
+        },
+        rewardDesc: "1 pair of Hellish Halloween Heels."
     },
     "El Nath explorer": {
         id: 17,
@@ -501,13 +431,9 @@ var feats =
             return groups["El Nath"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1102191);
+        },
+        rewardDesc: "1 El Nathian Cape."
     },
     "Korean Folk Town explorer": {
         id: 18,
@@ -516,13 +442,9 @@ var feats =
             return groups["Korean Folk Town"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040605, 8);
+        },
+        rewardDesc: "8 Scrolls for Bottomwear for DEF 30%."
     },
     "Leafre explorer": {
         id: 19,
@@ -531,13 +453,9 @@ var feats =
             return groups.Leafre.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2340000);
+        },
+        rewardDesc: "1 White Scroll."
     },
     "Orbis explorer": {
         id: 20,
@@ -546,13 +464,9 @@ var feats =
             return groups.Orbis.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(4001019, 15);
+        },
+        rewardDesc: "15 Orbis Rock Scrolls."
     },
     "Temple of Time explorer": {
         id: 21,
@@ -561,13 +475,9 @@ var feats =
             return groups["Temple of Time"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2049100, 3);
+        },
+        rewardDesc: "3 Chaos Scrolls."
     },
     "Liberator of homelessness": {
         id: 22,
@@ -576,13 +486,8 @@ var feats =
             return groups.Homelessness.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "Ability to craft items with Cody."
     },
     "Purveyor of illicit substances": {
         id: 23,
@@ -591,13 +496,8 @@ var feats =
             return groups["Certain Illicit Substance"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "Ability to purchase All Cure Potions from Mia."
     },
     "Chronologician": {
         id: 24,
@@ -606,13 +506,9 @@ var feats =
             return groups.Chronology.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040421, 6);
+        },
+        rewardDesc: "6 Scrolls for Topwear for HP 60%."
     },
     "Teddius/Trojanus partisan": {
         id: 25,
@@ -621,13 +517,9 @@ var feats =
             return groups["Teddius/Trojanus"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040904, 10);
+        },
+        rewardDesc: "10 Scrolls for Shield for DEF 70%."
     },
     "Eclectic brewer": {
         id: 26,
@@ -636,13 +528,9 @@ var feats =
             return groups["An Eclectic Brew"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022283, 2);
+        },
+        rewardDesc: "2 Subani's Mystic Cauldrons."
     },
     "Fib enabler": {
         id: 27,
@@ -651,13 +539,9 @@ var feats =
             return groups["A White Lie"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040702, 10);
+        },
+        rewardDesc: "10 Scrolls for Shoes for DEX 10%."
     },
     "Nuclear janitor": {
         id: 28,
@@ -666,13 +550,9 @@ var feats =
             return groups["Nuclear Negligence"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1022082);
+        },
+        rewardDesc: "1 pair of Spectrum Goggles."
     },
     "Master of offensive skill": {
         id: 29,
@@ -681,13 +561,9 @@ var feats =
             return groups["Offensive Skill"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022179, 2);
+        },
+        rewardDesc: "2 Onyx Apples."
     },
     "Master of buffing skill": {
         id: 30,
@@ -696,13 +572,9 @@ var feats =
             return groups["Buff Skill"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022251, 12);
+        },
+        rewardDesc: "12 Maple Pops."
     },
     "Master of monster riding": {
         id: 31,
@@ -711,13 +583,8 @@ var feats =
             return groups["Monster Riding"].every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "Ability to buy Pet Food from Mia in bulk."
     },
     "Sufferer of alienation": {
         id: 32,
@@ -726,13 +593,9 @@ var feats =
             return groups.Alienation.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2340000, 3);
+        },
+        rewardDesc: "3 White Scrolls."
     },
     "Krexel slayer": {
         id: 33,
@@ -741,13 +604,9 @@ var feats =
             return groups.Krexel.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022344, 36);
+        },
+        rewardDesc: "36 JigaJuices."
     },
     "Master of the cinches": {
         id: 34,
@@ -756,13 +615,9 @@ var feats =
             return groups.Cinch.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2022305, 3);
+        },
+        rewardDesc: "3 Taru Face Paints."
     },
     "Conqueror of the rudiments": {
         id: 35,
@@ -771,13 +626,9 @@ var feats =
             return groups.Rudimentary.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040004, 10);
+        },
+        rewardDesc: "10 Scrolls for Helmet for HP 60%."
     },
     "In high demand": {
         id: 36,
@@ -786,13 +637,9 @@ var feats =
             return groups.Demanding.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2041027, 21);
+        },
+        rewardDesc: "21 Scrolls for Cape for Magic Def. 30%."
     },
     "Thorny but unstoppable": {
         id: 37,
@@ -801,13 +648,9 @@ var feats =
             return groups.Thorny.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(5220000, 13);
+        },
+        rewardDesc: "13 Gachapon Tickets."
     },
     "Force of nature": {
         id: 38,
@@ -816,13 +659,9 @@ var feats =
             return groups.Formidable.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1102057);
+        },
+        rewardDesc: "1 Ludibrium Cape."
     },
     "Boss slayer": {
         id: 39,
@@ -831,13 +670,9 @@ var feats =
             return groups.Boss.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(2040914, 7);
+        },
+        rewardDesc: "7 Scrolls for Shield for Weapon Att. 60%."
     },
     "Boss control": {
         id: 40,
@@ -851,13 +686,9 @@ var feats =
             });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1032030);
+        },
+        rewardDesc: "1 pair of Sword Earrings."
     },
     "Boss veteran": {
         id: 41,
@@ -871,13 +702,22 @@ var feats =
             });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
+            var j = Math.floor(p.getJob().getId() / 100);
+            if (j === 1 || j === 3) {
+                cm.gainItem(1002739);
+                cm.gainItem(1052148);
+                cm.gainItem(1072342);
+            } else if (j === 2 || j === 4) {
+                cm.gainItem(1002740);
+                cm.gainItem(1052149);
+                cm.gainItem(1072343);
+            } else {
+                cm.gainItem(1002511);
+                cm.gainItem(1052210);
+                cm.gainItem(1072427);
             }
-        }
+        },
+        rewardDesc: "Full Bosshunter Armor, or Blizzard Armor, Maple Hat, and Red Christmas Sock for Pirates/Beginners."
     },
     "David": {
         id: 42,
@@ -891,13 +731,9 @@ var feats =
             });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+            cm.gainItem(1112501);
+        },
+        rewardDesc: "1 Ring of David."
     },
     "Traveller": {
         id: 43,
@@ -906,13 +742,8 @@ var feats =
             return groups.Travel.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "VIP Teleport Rocks from Mia are half price if you ask nice."
     },
     "Collector": {
         id: 44,
@@ -921,13 +752,8 @@ var feats =
             return groups.Collection.every(function(qid) { return p.completedCQuest(qid); });
         },
         reward: function(p) {
-            var noticePacket = MaplePacketCreator.serverNotice(6, "Congrats to " + p.getName() + " on unlocking feat " + this.id + "!");
-            try {
-                p.getClient().getChannelServer().getWorldInterface().broadcastMessage(p.getName(), noticePacket.getBytes());
-            } catch (e) {
-                p.getClient().getChannelServer().reconnectWorld();
-            }
-        }
+        },
+        rewardDesc: "All inventory spaces expanded by 10 slots."
     },
 };
 
@@ -951,24 +777,6 @@ function getFeatEntryById(fid) {
                .find(function(featEntry) {
                    return featEntry[1].id === fid;
                });
-}
-
-function jsArray(collection) {
-    var a = [];
-    if (collection instanceof Java.type("java.util.Collection")) {
-        collection.forEach(function(o) {
-            a.push(o);
-        });
-    } else if (collection instanceof Java.type("java.util.Map")) {
-        collection.entrySet().forEach(function(e) {
-            a.push(e);
-        });
-    } else {
-        throw new TypeError(
-            "Argument to jsArray should be a java.util.Collection or a java.util.Map."
-        );
-    }
-    return a;
 }
 
 function start() {
@@ -996,7 +804,8 @@ function action(mode, type, selection) {
     if (branch === 0) { // Main menu
         switch (status) {
             case 0:
-                cm.sendSimple("Hey there, I'm Ria! I'm here to help you out with your\r\n#e#dIntransigentQuests#k#n: custom quests with #bcompletion\r\nlevels#k, #rcustom dialogue#k, and #bunlockable feats that give special rewards#k!\r\n\r\n#L0#I'd like to take a look at the quests I have available to me.#l\r\n#L1#I'd like to see what progress I have on my currently active quest(s).#l\r\n#L2#I'd like to see a list of my completed quests.#l\r\n#L3#I'd like to browse all quest groups.#l\r\n#L4#I'd like to manage my feats/claim a reward.#l\r\n#L5#I want to change my effective level for a quest.#l");
+                var additionalOpt = p.hasFeat(0) ? "\r\n#L6#I'd like to redo a quest.#l" : "";
+                cm.sendSimple("Hey there, I'm Ria! I'm here to help you out with your\r\n#e#dIntransigentQuests#k#n: custom quests with #bcompletion\r\nlevels#k, #rcustom dialogue#k, and #bunlockable feats that give special rewards#k!\r\n\r\n#L0#I'd like to take a look at the quests I have available to me.#l\r\n#L1#I'd like to see what progress I have on my currently active quest(s).#l\r\n#L2#I'd like to see a list of my completed quests.#l\r\n#L3#I'd like to browse all quest groups.#l\r\n#L4#I'd like to manage my feats/claim a reward.#l\r\n#L5#I want to change my effective level for a quest.#l" + additionalOpt);
                 return;
             case 1:
                 branch = selection + 1;
@@ -1189,14 +998,34 @@ function action(mode, type, selection) {
                             });
                     newFeats.forEach(function(key) {
                         var feat = feats[key];
-                        p.addFeat(feat.id);
                         feat.reward(p);
+                        p.addFeat(feat.id);
+                        var noticePacket =
+                            MaplePacketCreator
+                                .serverNotice(
+                                    6,
+                                    "Congrats to " +
+                                        p.getName() +
+                                        " on unlocking the " +
+                                        key +
+                                        " feat!"
+                                );
+                        var cs = p.getClient().getChannelServer();
+                        try {
+                            cs.getWorldInterface().broadcastMessage(
+                                p.getName(),
+                                noticePacket.getBytes()
+                            );
+                        } catch (e) {
+                            cs.reconnectWorld();
+                        }
                         p.dropMessage(
                             5,
                             "Congratulations on achieving the " +
                                 key +
                                 " feat!"
                         );
+                        p.dropMessage(5, "You now have access to: " + feat.rewardDesc);
                     });
                     var leadText;
                     if (newFeats.length === 0) {
@@ -1216,6 +1045,8 @@ function action(mode, type, selection) {
                                     featEntry[0] +
                                     "#n\r\n    #d" +
                                     featEntry[1].desc +
+                                    "#k\r\n    #b" +
+                                    featEntry[1].rewardDesc +
                                     "#k\r\n";
                          })
                          .reduce("", function(accu, s) {
@@ -1241,6 +1072,8 @@ function action(mode, type, selection) {
                                        key +
                                        "#n\r\n    #d" +
                                        feat.desc +
+                                       "#k\r\n    #b" +
+                                       feat.rewardDesc +
                                        "#k\r\n";
                             })
                             .reduce(function(accu, s) {
@@ -1282,13 +1115,13 @@ function action(mode, type, selection) {
                                    i +
                                    "#" +
                                    q.getTitle() +
-                                   "  |  (" +
+                                   "  |  (#g" +
                                    q.getFearless() +
-                                   ", " +
+                                   "#k, #d" +
                                    q.getValiant() +
-                                   ", " +
+                                   "#k, #r" +
                                    q.getAdventuresome() +
-                                   ")  |  Current effective level: " +
+                                   "#k)  |  Current effective level: " +
                                    (cq.getEffectivePlayerLevel() > 0 ?
                                        cq.getEffectivePlayerLevel() :
                                        p.getLevel()) +
@@ -1299,7 +1132,7 @@ function action(mode, type, selection) {
                     cm.sendPrev("You aren't currently on any quests!");
                     branch = 0;
                 } else {
-                    cm.sendSimple("Select the quest that you'd like to change your effective level for.\r\nRemember that changing your effective level for a quest #ewill reset your progress for that quest#n!:\r\n\r\n" + choiceString);
+                    cm.sendSimple("Select the quest that you'd like to change your effective level for.\r\nRemember that changing your effective level for a quest\r\n#ewill reset your progress for that quest#n!:\r\n\r\n" + choiceString);
                 }
                 return;
             case 2:
@@ -1326,7 +1159,6 @@ function action(mode, type, selection) {
                 }
                 var selectedEL = p.getLevel() - selection;
                 p.getCQuest(questSlot).setEffectivePlayerLevel(selectedEL);
-                p.updateQuestEffectiveLevel();
                 cm.sendPrev(
                     "You're all set. Your new quest effective level for #e" +
                         p.getCQuest(questSlot).getQuest().getTitle() +
@@ -1336,6 +1168,57 @@ function action(mode, type, selection) {
                 );
                 branch = 0;
                 status = 1;
+                return;
+        }
+    }
+
+    if (branch === 7) { // Redo quest
+        if (!p.hasFeat(0)) {
+            cm.dispose();
+            return;
+        }
+        switch (status) {
+            case 0:
+                cm.dispose();
+                return;
+            case 1:
+                var possibleEraseStr =
+                    p.readCompletedCQuests()
+                     .entrySet()
+                     .stream()
+                     .sorted(function(e1, e2) {
+                         var cq1 = MapleCQuests.loadQuest(e1.getKey()),
+                             cq2 = MapleCQuests.loadQuest(e2.getKey());
+                         return Integer.compare(cq1.getFearless(), cq2.getFearless());
+                     })
+                     .map(function(e) {
+                         var cq = MapleCQuests.loadQuest(e.getKey());
+                         var completion = e.getValue();
+                         var completionStr = StringUtil.makeEnumHumanReadable(completion.name());
+                         var qid = +cq.getId();
+                         var groupsStr = Object.keys(groups).filter(function(group) {
+                             return groups[group].indexOf(qid) !== -1;
+                         }).join(", ");
+                         return [qid, cq.getTitle() + " (" + completionStr + ")"];
+                     })
+                     .reduce("", function(accu, s) {
+                         return accu + "\r\n#L" + s[0] + "#" + s[1] + "#l";
+                     });
+                if (possibleEraseStr === "") {
+                    cm.sendPrev("You haven't completed any quests yet!");
+                } else {
+                    cm.sendSimple("Select the quest that you'd like to redo:\r\n" + possibleEraseStr);
+                }
+                return;
+            case 2:
+                if (MapleCQuests.loadQuest(selection).isRepeatable()) {
+                    cm.sendPrev("That quest is already repeatable!");
+                    return;
+                }
+                p.setRepeatableQuest(selection);
+                cm.sendPrev("You may now redo #e" + MapleCQuests.loadQuest(selection).getTitle() + "#n.\r\n\r\nRemember that you must accept (start) the quest before you mark another quest for redo-ing or log out, otherwise you'll have to talk to me again!");
+                status--;
+                branch = 0;
                 return;
         }
     }

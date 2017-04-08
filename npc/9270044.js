@@ -6,11 +6,6 @@
  * Quests 11000, 11001, 11002, 11003
  */
 
-/* jshint ignore: start */
-// Array.prototype.findIndex() polyfill
-Array.prototype.findIndex=Array.prototype.findIndex||function(evaluator,thisArg){"use strict";if(!this)throw new TypeError("Array.prototype.some called on null or undefined");if("function"!=typeof evaluator){if("string"!=typeof evaluator)throw new TypeError;if(!(evaluator=eval(evaluator)))throw new TypeError}var i;if(void 0===thisArg){for(i in this)if(evaluator(this[i],i,this))return i;return-1}for(i in this)if(evaluator.call(thisArg,this[i],i,this))return i;return-1};
-/* jshint ignore: end */
-
 var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;

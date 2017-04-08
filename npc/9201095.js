@@ -5,14 +5,10 @@
  * Virtual skill NPC
  */
 
-// Array.find() polyfill
-/* jshint ignore:start */
-Array.prototype.find||Object.defineProperty(Array.prototype,"find",{value:function(a){"use strict";if(null==this)throw new TypeError("Array.prototype.find called on null or undefined");if("function"!=typeof a)throw new TypeError("predicate must be a function");for(var e,b=Object(this),c=b.length>>>0,d=arguments[1],f=0;f<c;f++)if(e=b[f],a.call(d,e,f,b))return e}});
-/* jshint ignore:end */
-
-var MapleJob     = Java.type("net.sf.odinms.client.MapleJob");
-var SkillFactory = Java.type("net.sf.odinms.client.SkillFactory");
-var MapleStat    = Java.type("net.sf.odinms.client.MapleStat");
+var MapleCharacter = Java.type("net.sf.odinms.client.MapleCharacter");
+var MapleJob       = Java.type("net.sf.odinms.client.MapleJob");
+var MapleStat      = Java.type("net.sf.odinms.client.MapleStat");
+var SkillFactory   = Java.type("net.sf.odinms.client.SkillFactory");
 
 var status;
 /*
@@ -24,6 +20,19 @@ var skills =
 {
     230: [[1200001, 12, 1, false, null]],
     232: [[1221002, 20, 3, true,  null]],
+    300: [[4001334, 20, 1, true,  null]],
+    310: [[1300000, 20, 1, false, null], [4200000, 20, 1, false, null],
+          [1301004, 20, 1, true,  null], [4201002, 20, 1, true,  null],
+          [1311003, 30, 1, true,  null]],
+    311: [[4001003, 20, 1, true,  function(p) {
+        return p.getStr() >= 360;
+    }],   [4220002, 30, 1, false, function(p) {
+        return p.getStr() >= 360;
+    }],   [1310000, 20, 1, false, function(p) {
+        return p.getStr() >= 360;
+    }]],
+    312: [[4220005, 30, 1, false, null], [1311001, 16, 1, true,  null],
+          [4211002, 30, 1, true,  null]],
     511: [[4111006, 20, 1, true,  function(p) {
         return p.getInt() >= 450;
     }]]
@@ -122,39 +131,59 @@ var keyNums =
     "delete": 83,
 };
 var retryBind = false;
-var candidates, branch, skill, raise, activeCandidates;
+var candidates, branch, skill, raise,
+    activeCandidates, resetDirection,
+    skillResetJob, fromSkill, transferSp,
+    base;
+
+function range(start, end, step) {
+    if (end === undefined) {
+        end = start;
+        start = 0;
+    }
+    if (!step) step = 1;
+    var r = [], i;
+    if (end < start) {
+        step = Math.abs(step);
+        for (i = start; i > end; i -= step) {
+            r.push(i);
+        }
+    } else if (step < 0) {
+        for (i = end; i > start; i += step) {
+            r.push(i);
+        }
+    } else {
+        for (i = start; i < end; i += step) {
+            r.push(i);
+        }
+    }
+    return r;
+}
 
 function start() {
     var p = cm.getPlayer();
-    candidates = Object.keys(skills)
-                       .filter(function(jobId) {
-                           return p.getJob().isA(MapleJob.getById(jobId));
-                       })
-                       .map(function(jobId) {
-                           return skills[jobId];
-                       })
-                       .reduce(function(accu, l) {
-                           return accu.concat(l);
-                       }, [])
-                       .filter(function(skill) {
-                           return skill[4] === null ? true : skill[4](p);
-                       });
-    if (p.getJob().isA(MapleJob.getById(510)) && p.getSkillLevel(4000000) > 0) {
-        p.setRemainingSp(p.getRemainingSp() + p.getSkillLevel(4000000));
-        p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
-        p.changeSkillLevel(
-            SkillFactory.getSkill(4000000),
-            0,
-            p.getMasterLevel(SkillFactory.getSkill(4000000))
-        );
-    }
+    candidates =
+        Object
+            .keys(skills)
+            .filter(function(jobId) {
+                return p.getJob().isA(MapleJob.getById(jobId));
+            })
+            .map(function(jobId) {
+                return skills[jobId];
+            })
+            .reduce(function(accu, l) {
+                return accu.concat(l);
+            }, [])
+            .filter(function(skill) {
+                return skill[4] === null ? true : skill[4](p);
+            });
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    var curSkillLevel, skillString;
+    var curSkillLevel, skillString, spReset;
     if (mode < 0) {
         cm.dispose();
         return;
@@ -170,7 +199,7 @@ function action(mode, type, selection) {
     }
     switch (status) {
         case 0:
-            cm.sendSimple("Hey. So you wanna use #dvirtual skills#k, huh?\r\n\r\n#L0#I'd like to spend/remove skill points in virtual skills.#l\r\n#L1#I'd like to view the virtual skills I have.#l\r\n#L3#I need to put an active virtual skill onto a keybind.#l\r\n#L2#What are virtual skills and how do I get them?#l");
+            cm.sendSimple("Hey. So you wanna use #dvirtual skills#k, huh?\r\n\r\n#L0#I'd like to spend/remove skill points in virtual skills.#l\r\n#L1#I'd like to view the virtual skills I have.#l\r\n#L3#I need to put an active virtual skill onto a keybind.#l\r\n#L2#What are virtual skills and how do I get them?#l\r\n#L4#I want to swap SP between my skills and virtual skills, using SP resets.#l");
             break;
         case 1:
             branch = selection;
@@ -183,7 +212,7 @@ function action(mode, type, selection) {
                                    "##s" +
                                    s[0] +
                                    "##l\r\n\r\n#bCurrent level: " +
-                                   p.getSkillLevel(SkillFactory.getSkill(s[0])) +
+                                   p.getSkillLevel(s[0]) +
                                    "#k\r\n#dMax level: " +
                                    s[1] +
                                    "#k\r\n#rSP needed per rank: " +
@@ -204,7 +233,7 @@ function action(mode, type, selection) {
                                    "#\r\n\r\n#e#q" +
                                    s[0] +
                                    "##n\r\n#bCurrent level: " +
-                                   p.getSkillLevel(SkillFactory.getSkill(s[0])) +
+                                   p.getSkillLevel(s[0]) +
                                    "#k\r\n#dMax level: " +
                                    s[1] +
                                    "#k\r\n#rSP needed per rank: " +
@@ -225,11 +254,11 @@ function action(mode, type, selection) {
                                                      "#n";
                                           })
                                           .join("");
-                    cm.sendPrev("#dVirtual skills#k are skills that people can put their #bskill points#k into without having to be part of the class/job associated with that skill.\r\n\r\nThe only way to put points into (or take points out of) virtual skills is to #etalk to me, #rFiona#k#n.\r\n\r\nThe only classes that can obtain virtual skills (as of now) are:\r\n" + classList);
+                    cm.sendPrev("#dVirtual skills#k are skills that people can put their #bskill points#k\r\ninto without having to be part of the class/job associated with that skill.\r\n\r\nThe only way to put points into (or take points out of) virtual skills is to #etalk to me, #rFiona#k#n.\r\n\r\nThe only classes that can obtain virtual skills (as of now) are:\r\n" + classList);
                     break;
                 case 3:
                     activeCandidates = candidates.filter(function(s) {
-                        return s[3] && p.getSkillLevel(SkillFactory.getSkill(s[0])) > 0;
+                        return s[3] && p.getSkillLevel(s[0]) > 0;
                     });
                     if (activeCandidates.length > 0) {
                         skillString = activeCandidates.map(function(s) {
@@ -240,7 +269,7 @@ function action(mode, type, selection) {
                                    "#\r\n\r\n#e#q" +
                                    s[0] +
                                    "##n\r\n#bCurrent level: " +
-                                   p.getSkillLevel(SkillFactory.getSkill(s[0])) +
+                                   p.getSkillLevel(s[0]) +
                                    "#k\r\n#dMax level: " +
                                    s[1] +
                                    "#k\r\n#rSP needed per rank: " +
@@ -252,6 +281,9 @@ function action(mode, type, selection) {
                     } else {
                         cm.sendPrev("Sorry, it doesn't look like you have any #eactive#n virtual skills.");
                     }
+                    break;
+                case 4:
+                    cm.sendSimple("#L0#I want to reset skill points out of a non-virtual skill into a virtual one.#l\r\n#L1#I want to reset skill points out of a virtual skill into a non-virtual one.#l");
                     break;
                 default:
                     cm.dispose();
@@ -276,6 +308,26 @@ function action(mode, type, selection) {
                     }
                     cm.sendGetText("What key would you like to bind  #s" + skill[0] + "#  to?");
                     break;
+                case 4:
+                    if (selection < 0) {
+                        cm.dispose();
+                        return;
+                    }
+                    resetDirection = selection;
+                    var job = p.getJob().getAdvancement();
+                    if (job === 0) {
+                        cm.sendOk("Beginners don't have skills, silly!");
+                        cm.dispose();
+                        return;
+                    }
+                    var selectStr =
+                        range(1, job + 1)
+                            .map(function(j) {
+                                return "#L" + j + "#Job " + j + " skills#l";
+                            })
+                            .join("\r\n");
+                    cm.sendSimple("Which job would you like to reset skills in?:\r\n\r\n" + selectStr);
+                    break;
                 default:
                     cm.dispose();
                     return;
@@ -285,7 +337,7 @@ function action(mode, type, selection) {
             switch (branch) {
                 case 0:
                     raise = selection === 0;
-                    curSkillLevel = p.getSkillLevel(SkillFactory.getSkill(skill[0]));
+                    curSkillLevel = p.getSkillLevel(skill[0]);
                     switch (selection) {
                         case 0:
                             if (curSkillLevel < skill[1] && p.getRemainingSp() >= skill[2]) {
@@ -331,6 +383,44 @@ function action(mode, type, selection) {
                         retryBind = true;
                     }
                     break;
+                case 4:
+                    if (selection < 0) {
+                        cm.dispose();
+                        return;
+                    }
+                    skillResetJob = selection;
+                    var skillSelectStr =
+                        p.getSkills()
+                         .entrySet()
+                         .stream()
+                         .filter(function(e) {
+                             var id = e.getKey().getId();
+                             var skillJob = MapleJob.getById(Math.floor(id / 10000));
+                             var virtual = !!resetDirection;
+                             return id >= 1000000 &&
+                                    skillJob.getAdvancement() === selection &&
+                                    e.getValue().skillevel > 0 &&
+                                    p.getJob().isA(skillJob) !== virtual;
+                         })
+                         .map(function(e) {
+                             var id = e.getKey().getId();
+                             return "#L" +
+                                    id +
+                                    "##s" +
+                                    id +
+                                    "#\r\n\r\n#q" +
+                                    id +
+                                    "#\r\nCurrent level: " +
+                                    p.getSkillLevel(id) +
+                                    "\r\nMax level: " +
+                                    SkillFactory.getSkill(id).getMaxLevel() +
+                                    "#l";
+                         })
+                         .reduce("", function(accu, s) {
+                             return accu + "\r\n" + s;
+                         });
+                    cm.sendSimple("Pick a skill to remove levels from:\r\n" + skillSelectStr);
+                    break;
                 default:
                     cm.dispose();
                     return;
@@ -339,7 +429,7 @@ function action(mode, type, selection) {
         case 4:
             switch (branch) {
                 case 0:
-                    curSkillLevel = p.getSkillLevel(SkillFactory.getSkill(skill[0]));
+                    curSkillLevel = p.getSkillLevel(skill[0]);
                     if (raise) {
                         if (curSkillLevel + selection <= skill[1] && selection * skill[2] <= p.getRemainingSp()) {
                             p.setRemainingSp(p.getRemainingSp() - selection * skill[2]);
@@ -347,35 +437,199 @@ function action(mode, type, selection) {
                             p.changeSkillLevel(
                                 SkillFactory.getSkill(skill[0]),
                                 curSkillLevel + selection,
-                                p.getMasterLevel(SkillFactory.getSkill(skill[0]))
+                                p.getMasterLevelById(skill[0])
                             );
-                            cm.sendOk("Looks like you're all set, kiddo.\r\n\r\n#s" + skill[0] + "#\r\n\r\n#bLevel: " + p.getSkillLevel(SkillFactory.getSkill(skill[0])) + "#k");
+                            cm.sendOk("Looks like you're all set, kiddo.\r\n\r\n#s" + skill[0] + "#\r\n\r\n#bLevel: " + p.getSkillLevel(skill[0]) + "#k");
                         } else {
                             cm.sendOk("Sorry, kid. Can't put that many points in. Make sure the thing's not already maxed, and ya have enough skill points to raise it.");
                         }
                     } else {
-                        var spReset = 5050000;
-                        var skillJob;
-                        if (Math.floor(skill[0] / 10000) % 100 === 0) {
-                            skillJob = 1;
-                        } else {
-                            skillJob = Math.floor(skill[0] / 10000) % 10 + 2;
-                        }
+                        spReset = 5050000;
+                        var skillJob = MapleJob.getById(Math.floor(skill[0] / 10000)).getAdvancement();
                         spReset += skillJob;
                         if (curSkillLevel - selection >= 0 && cm.itemQuantity(spReset) >= selection) {
                             cm.gainItem(spReset, -selection);
                             p.changeSkillLevel(
                                 SkillFactory.getSkill(skill[0]),
                                 curSkillLevel - selection,
-                                p.getMasterLevel(SkillFactory.getSkill(skill[0]))
+                                p.getMasterLevelById(skill[0])
                             );
                             p.setRemainingSp(p.getRemainingSp() + selection * skill[2]);
                             p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
-                            cm.sendOk("Looks like you're all set, kiddo.\r\n\r\n#s" + skill[0] + "#\r\n\r\n#bLevel: " + p.getSkillLevel(SkillFactory.getSkill(skill[0])) + "#k");
+                            cm.sendOk("Looks like you're all set, kiddo.\r\n\r\n#s" + skill[0] + "#\r\n\r\n#bLevel: " + p.getSkillLevel(skill[0]) + "#k");
                         } else {
                             cm.sendOk("It looks like ya dont have enough of these bad boys:\r\n\r\n#i" + spReset + "#\r\n\r\n...or just don't have enough levels in that skill to take out.");
                         }
                     }
+                    cm.dispose();
+                    return;
+                case 4:
+                    if (selection <= 0) {
+                        cm.dispose();
+                        return;
+                    }
+                    fromSkill = selection;
+                    base = 1;
+                    if (resetDirection === 1) {
+                        var fs = candidates.find(function(c) {
+                            return selection === c[0];
+                        });
+                        if (!fs) {
+                            cm.sendOk("It doesn't look like you have access to that virtual skill.");
+                            cm.dispose();
+                            return;
+                        }
+                        base = fs[2];
+                    }
+                    cm.sendGetNumber("How many points would you like to remove from #e#q" + selection + "##n?\r\n", base, base, p.getSkillLevel(selection) * base);
+                    break;
+                default:
+                    cm.dispose();
+                    return;
+            }
+            break;
+        case 5:
+            switch (branch) {
+                case 4:
+                    if (selection < 0) {
+                        cm.dispose();
+                        return;
+                    }
+                    if (base > 1 && selection % base !== 0) {
+                        cm.sendOk("Sorry, but the number of points you remove must be a multiple of the number of SP points required per level of the skill!");
+                        cm.dispose();
+                        return;
+                    }
+                    transferSp = selection;
+                    var toSelectStr;
+                    if (resetDirection === 0) { // non-virtual => virtual
+                        toSelectStr =
+                            candidates
+                                .filter(function(c) {
+                                    var skillJob = MapleJob.getById(Math.floor(c[0] / 10000));
+                                    var curLv = p.getSkillLevel(c[0]);
+                                    return curLv + Math.floor(selection / c[2]) <= c[1] &&
+                                           skillJob.getAdvancement() === skillResetJob;
+                                })
+                                .map(function(c) {
+                                    return "\r\n#L" +
+                                           c[0] +
+                                           "##s" +
+                                           c[0] +
+                                           "#\r\n#q" +
+                                           c[0] +
+                                           "#\r\nCurrent level: " +
+                                           p.getSkillLevel(c[0]) +
+                                           "\r\nMax level: " +
+                                           c[1] +
+                                           "\r\nSP per level: " +
+                                           c[2] +
+                                           "#l";
+                                })
+                                .join("\r\n");
+                    } else {
+                        toSelectStr =
+                            jsArray(MapleCharacter.SKILL_IDS)
+                                .filter(function(id) {
+                                    var skillJob = MapleJob.getById(Math.floor(id / 10000));
+                                    var skill = SkillFactory.getSkill(id);
+                                    return id >= 1000000 &&
+                                           skillJob.getAdvancement() === skillResetJob &&
+                                           player.getSkillLevel(skill) + selection <= skill.getMaxLevel() &&
+                                           p.getJob().isA(skillJob);
+                                })
+                                .map(function(id) {
+                                    return "#L" +
+                                           id +
+                                           "##s" +
+                                           id +
+                                           "#\r\n#q" +
+                                           id +
+                                           "#\r\nCurrent level: " +
+                                           p.getSkillLevel(id) +
+                                           "\r\nMax level: " +
+                                           SkillFactory.getSkill(id).getMaxLevel() +
+                                           "#l\r\n";
+                                })
+                                .reduce(function(accu, s) {
+                                    return accu + "\r\n" + s;
+                                }, "");
+                    }
+                    cm.sendSimple("Pick a skill to add levels to:\r\n" + toSelectStr);
+                    break;
+                default:
+                    cm.dispose();
+                    return;
+            }
+            break;
+        case 6:
+            switch (branch) {
+                case 4:
+                    if (selection < 0) {
+                        cm.dispose();
+                        return;
+                    }
+                    var vs, errorMsg;
+                    spReset = 5050000 + skillResetJob;
+                    if (resetDirection === 0) { // non-virtual => virtual
+                        vs = candidates.find(function(c) {
+                            return selection === c[0];
+                        });
+                        if (p.getSkillLevel(fromSkill) < transferSp) {
+                            errorMsg = "Hmmm... it doesn't look like you have enough points in the first skill to take that many SP out of it.";
+                        } else if (!p.getJob().isA(MapleJob.getById(Math.floor(fromSkill / 10000)))) {
+                            errorMsg = "Hmmm... it looks like the skill you're trying to remove SP from is virtual.";
+                        } else if (!vs) {
+                            errorMsg = "Hmmm... it looks like the skill you're trying to add levels to isn't virtual.";
+                        } else if (transferSp % vs[2] !== 0) {
+                            errorMsg = "Uh oh. The number of SP you're trying to put into that virtual skill isn't a multiple of the SP required per level of the skill.";
+                        } else if ((p.getSkillLevel(selection) + Math.floor(transferSp / vs[2])) > vs[1]) {
+                            errorMsg = "Uh oh. The number of SP you're trying to put into that virtual skill would bring it above maximum level.";
+                        }
+                    } else if (resetDirection === 1) { // virtual => non-virtual
+                        vs = candidates.find(function(c) {
+                            return fromSkill === c[0];
+                        });
+                        if (!vs) {
+                            errorMsg = "Hmmm... it looks like the skill you're trying to remove SP from isn't virtual.";
+                        } else if (transferSp % vs[2] !== 0) {
+                            errorMsg = "Uh oh. The number of SP you're trying to take out of that virtual skill isn't a multiple of the SP required per level of the skill.";
+                        } else if (p.getSkillLevel(fromSkill) * vs[2] < transferSp) {
+                            errorMsg = "Hmmm... it doesn't look like you have enough points in the first skill to take that many SP out of it.";
+                        } else if (!p.getJob().isA(MapleJob.getById(Math.floor(selection / 10000)))) {
+                            errorMsg = "Hmmm... it looks like the skill you're trying to add levels to is virtual.";
+                        } else if (p.getSkillLevel(selection) + transferSp > SkillFactory.getSkill(selection).getMaxLevel()) {
+                            errorMsg = "Uh oh. The number of SP you're trying to put into that skill would bring it above maximum level.";
+                        }
+                    }
+                    if (errorMsg) {
+                        cm.sendOk(errorMsg);
+                        cm.dispose();
+                        return;
+                    } else if (cm.itemQuantity(spReset) < transferSp) {
+                        cm.sendOk("Hmmm... looks like you don't have enough of these guys:\r\n\r\n#i" + spReset + "#  #ex" + transferSp + "#n");
+                        cm.dispose();
+                        return;
+                    }
+                    cm.gainItem(spReset, -transferSp);
+                    if (resetDirection === 0) { // non-virtual => virtual
+                        p.changeSkillLevel(fromSkill, p.getSkillLevel(fromSkill) - transferSp, p.getMasterLevelById(fromSkill));
+                        p.changeSkillLevel(selection, p.getSkillLevel(selection) + Math.floor(transferSp / vs[2]), p.getMasterLevelById(selection));
+                    } else if (resetDirection === 1) { // virtual => non-virtual
+                        p.changeSkillLevel(fromSkill, p.getSkillLevel(fromSkill) - Math.floor(transferSp / vs[2]), p.getMasterLevelById(fromSkill));
+                        p.changeSkillLevel(selection, p.getSkillLevel(selection) + transferSp, p.getMasterLevelById(selection));
+                    }
+                    cm.sendOk(
+                        "Looks like you're all set, kid.\r\n\r\n#s" +
+                            fromSkill +
+                            "#\r\n\r\n#bLevel: " +
+                            p.getSkillLevel(fromSkill) +
+                            "#k\r\n\r\n#s" +
+                            selection +
+                            "#\r\n\r\n#bLevel: " +
+                            p.getSkillLevel(selection) +
+                            "#k"
+                    );
                     cm.dispose();
                     return;
                 default:

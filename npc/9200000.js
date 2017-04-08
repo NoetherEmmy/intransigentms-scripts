@@ -6,10 +6,13 @@
  * ID: 9200000
  */
 
-var MapleJob           = Java.type("net.sf.odinms.client.MapleJob");
-var MaplePacketCreator = Java.type("net.sf.odinms.tools.MaplePacketCreator");
-var MapleStat          = Java.type("net.sf.odinms.client.MapleStat");
-var SkillFactory       = Java.type("net.sf.odinms.client.SkillFactory");
+var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
+var MapleJob                     = Java.type("net.sf.odinms.client.MapleJob");
+var MapleLifeFactory             = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
+var MaplePacketCreator           = Java.type("net.sf.odinms.tools.MaplePacketCreator");
+var MapleStat                    = Java.type("net.sf.odinms.client.MapleStat");
+var Point                        = Java.type("java.awt.Point");
+var SkillFactory                 = Java.type("net.sf.odinms.client.SkillFactory");
 
 var status;
 var possibleJobs = [];
@@ -117,7 +120,24 @@ var skillIds =
     5121008, 5121007, 5121005, 5121004, 5121003, 5121002, 5121001, 5121000, 5211006, 5211005, 5211004, 5211002, 5211001, 5210000,
     9001000, 9001001, 9001002, 9101000, 9101001, 9101002, 9101003, 9101004, 9101005, 9101006, 9101007, 9101008
 ];
-var job, recipe, test, firstSelection, making;
+var bosses = [
+    [9400014],
+    [8800000, 8800003, 8800004, 8800005, 8800006, 8800007, 8800008, 8800009, 8800010],
+    [8500001],
+    [9300028],
+    [6130101],
+    [9400121],
+    [9400300],
+    [9500179],
+    [9300039],
+    [9400549],
+    [9300139, 9300140],
+    [8520000],
+    [9500177],
+    [8810026]
+];
+var job, recipe, test, firstSelection,
+    making, ii, bossSelection;
 
 function levelGrad(victim, target) {
     var startLevel = victim.getLevel();
@@ -153,17 +173,10 @@ function maxSkillMasteries(p) {
 function start() {
     var p = cm.getPlayer();
     if ("" + p.getName() === "") {
-        /*
-        p.setDex(p.getDex() - 100);
-        p.updateSingleStat(MapleStat.DEX, p.getDex());
-        p.setRemainingAp(p.getRemainingAp() + 100);
-        p.updateSingleStat(MapleStat.AVAILABLEAP, p.getRemainingAp());
-        */
-
         canusecody = true;
     }
-
-    test = false;
+    ii = MapleItemInformationProvider.getInstance();
+    test = true;
     status = -1;
     action(1, 0, 0);
 }
@@ -459,11 +472,11 @@ function action(mode, type, selection) {
             return;
         }
         if (status === 0) {
-            cm.sendSimple("Hey, I'm Cody. It looks like it's #dtesting time#k around here -- whaddaya say?\r\n\r\n#L0#I want you to change my level.#l\r\n#L1#I want you to change my job.#l\r\n#L2#I need some mesos.#l\r\n#L3#I need some NX.#l\r\n#L4#Can you give me a VIP item to try out?#l\r\n#L5#I want you to max my skills.#l\r\n#L6#I want some AP points!#l\r\n#L7#I want maxHP/MP.#l\r\n#L8#I want to reset my ap.#l\r\n#L9#Please, reset my death penalty level to 0.#l\r\n#L10#I need some stars.#l\r\n#L11#I need some bow arrows.#l\r\n#L12#I need some crossbow bolts.#l\r\n#L13#Give me darkness.#l\r\n#L14#I hate myself and need a bullet to end it all.#l");
+            cm.sendSimple("Hey, I'm Cody. It looks like it's #dtesting time#k around here -- whaddaya say?\r\n\r\n#L0#I want you to change my level.#l\r\n#L1#I want you to change my job.#l\r\n#L2#I need some mesos.#l\r\n#L3#I need some NX.#l\r\n#L4#Can you give me a VIP item to try out?#l\r\n#L5#I want you to max my skills.#l\r\n#L6#I want some AP points!#l\r\n#L7#I want maxHP/MP.#l\r\n#L8#I want to reset my ap.#l\r\n#L9#Please, reset my death penalty level to 0.#l\r\n#L10#I need some stars.#l\r\n#L11#I need some bow arrows.#l\r\n#L12#I need some crossbow bolts.#l\r\n#L13#Give me darkness.#l\r\n#L14#I hate myself and need a bullet to end it all.#l\r\n#L15#I have an item ID for you.#l\r\n#L16#I want to reset all my skills.#l\r\n#L17#I want 50 SP.#l\r\n#L18#I wanna spawn a boss!#l");
         } else if (status === 1) {
             selected = selection;
             if (selection === 0) {
-                cm.sendGetNumber("Ok, what level do ya want, kid?", 1, 1, 200);
+                cm.sendGetNumber("Ok, what level do ya want, kid?", 1, 1, 250);
             } else if (selection === 1) {
                 cm.sendSimple("Alright, pick yer poison:\r\n\r\n#L0#Beginner#l\r\n#L100#Warrior#l\r\n#L110#Fighter#l\r\n#L111#Crusader#l\r\n#L112#Hero#l\r\n#L120#Page#l\r\n#L121#White Knight#l\r\n#L122#Paladin#l\r\n#L130#Sporeman#l\r\n#L131#DragonK#l\r\n#L132#DarkK#l\r\n#L200#Magician#l\r\n#L210#F/P Wiz#l\r\n#L211#F/P Mage#l\r\n#L212#F/P Arch#l\r\n#L220#I/L Wiz#l\r\n#L221#I/L Mage#l\r\n#L222#I/L Arch#l\r\n#L230#Cleric#l\r\n#L231#Priest#l\r\n#L232#Bishop#l\r\n#L300#Bowman#l\r\n#L310#Hunter#l\r\n#L311#Ranger#l\r\n#L312#Bowmaster#l\r\n#L320#Crossbowman#l\r\n#L321#Sniper#l\r\n#L322#Marksman#l\r\n#L400#Rogue#l\r\n#L410#Assassin#l\r\n#L411#Hermit#l\r\n#L412#Nightlord#l\r\n#L420#Bandit#l\r\n#L421#Chief Bandit#l\r\n#L422#Shadower#l\r\n#L500#Pirate#l\r\n#L510#Brawler#l\r\n#L511#Maurauder#l\r\n#L512#Buccaneer#l\r\n#L520#Gunslinger#l\r\n#L521#Outlaw#l\r\n#L522#Corsair#l");
             } else if (selection === 2) {
@@ -479,12 +492,12 @@ function action(mode, type, selection) {
             } else if (selection === 4) {
                 var s = "Pick one:\r\n\r\n";
                 for (i = 0; i < vipitems.length; ++i) {
-                    s += "#L" + String(i) + "##i" + String(vipitems[i]) + "##l\r\n";
+                    s += "#L" + i + "##i" + vipitems[i] + "##l\r\n";
                 }
                 cm.sendSimple(s);
             } else if (selection === 5) {
                 cm.sendOk("You're all set.");
-                p.maxAllSkills();
+                maxSkills(p);
                 cm.dispose();
                 return;
             } else if (selection === 6) {
@@ -561,6 +574,31 @@ function action(mode, type, selection) {
                 cm.gainItem(2330005, 900);
                 cm.dispose();
                 return;
+            } else if (selection === 15) {
+                cm.sendGetNumber("Write down that there item ID down in this here paper:", 1000000, 1000000, 9999999);
+            } else if (selection === 16) {
+                p.resetAllSkills();
+                cm.sendOk("All set.");
+                cm.dispose();
+                return;
+            } else if (selection === 17) {
+                p.setRemainingSp(p.getRemainingSp() + 50);
+                p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
+                cm.sendOk("All set.");
+                cm.dispose();
+                return;
+            } else if (selection === 18) {
+                var bossSelectStr =
+                    bosses
+                        .map(function(bossArray, index) {
+                            return "#L" +
+                                   index +
+                                   "#" +
+                                   MapleLifeFactory.getMonster(bossArray[0]).getName() +
+                                   "#l";
+                        })
+                        .join("\r\n");
+                cm.sendSimple("Pick yer poison:\r\n\r\n" + bossSelectStr);
             }
         } else if (status === 2) {
             if (selected === 0) {
@@ -578,6 +616,52 @@ function action(mode, type, selection) {
                 cm.gainItem(vipitems[selection], 1);
                 cm.dispose();
                 return;
+            } else if (selected === 15) {
+                var itemName = ii.getName(selection);
+                if (!itemName || itemName.length() < 1) {
+                    cm.sendOk("Hmmm... I can't find that item.");
+                } else {
+                    cm.gainItem(selection);
+                    cm.sendOk("Here you go:\r\n\r\n#i" + selection + "#");
+                }
+                cm.dispose();
+                return;
+            } else if (selected === 18) {
+                if (selection < 0) {
+                    cm.dispose();
+                    return;
+                }
+                bossSelection = selection;
+                cm.sendGetNumber("Which FM room do you want to spawn it in?\r\n", 1, 1, 22);
+            }
+        } else if (status === 3) {
+            switch (selected) {
+                case 18:
+                    if (!selection || selection < 1) {
+                        cm.sendOk("Oops!");
+                        cm.dispose();
+                        return;
+                    }
+                    var mapId = 910000000 + selection;
+                    var map = cm.getC().getChannelServer().getMapFactory().getMap(mapId);
+                    if (map.playerCount() > 0) {
+                        cm.sendOk("There are players in that map!");
+                        cm.dispose();
+                        return;
+                    }
+                    bosses[bossSelection].forEach(function(mid) {
+                        var m = MapleLifeFactory.getMonster(mid);
+                        map.spawnMonsterOnGroundBelow(m, map.findClosestSpawnpoint(new Point(50, 1363)).getPosition());
+                        if (mid === 8810026) {
+                            map.killMonster(m, p, false);
+                        }
+                    });
+                    cm.sendOk("All set!");
+                    cm.dispose();
+                    return;
+                default:
+                    cm.dispose();
+                    return;
             }
         }
     } else {
@@ -598,6 +682,10 @@ function action(mode, type, selection) {
             if (firstSelection === 0) {
                 cm.sendPrev("If you're looking to make a job advancement, please see your respective instructor in Victoria Island:\r\n\r\nWarriors: #bDances With Balrog#k of #rPerion#k\r\nArchers: #bAthena Pierce#k of #rHenesys#k\r\nThieves: #bDark Lord#k of #rKerning City#k\r\nMagicians: #bGrendel The Really Old#k of #rEllinia#k\r\nPirates: #bKyrin#k of #rNautilus Port#k");
             } else if (firstSelection === 1) {
+                if (!p.hasFeat(22)) {
+                    cm.sendPrev("Sorry, but I can't craft items for you until you've attained the #eLiberator of Homelessness#n feat.");
+                    return;
+                }
                 var selectionstring = "";
                 for (i = 0; i < craftables.length; ++i) {
                     selectionstring += "#L" + i + "##i" + craftables[i] + "##l\r\n#L" + craftables[i] + "#\t (view stats for this item)#l\r\n";
@@ -620,7 +708,7 @@ function action(mode, type, selection) {
                 for (i = 0; i < recipe.length; ++i) {
                     requirementstring += "#i" + recipe[i][0] + "#  x" + recipe[i][1] + "\r\n";
                 }
-            
+
                 cm.sendYesNo("To make #i" + selected + "# you will need the following:\r\n\r\n" + requirementstring + "\r\nDo you have these items now?");
             }
         } else if (status === 3) {
@@ -631,7 +719,6 @@ function action(mode, type, selection) {
             var canmake = true;
             for (i = 0; i < recipe.length; ++i) {
                 if (cm.itemQuantity(recipe[i][0]) < recipe[i][1]) {
-                    //p.dropMessage(recipe[i][0] + ", " + recipe[i][1]);
                     canmake = false;
                     break;
                 }

@@ -10,12 +10,8 @@
  * for rewards.
  */
 
-/* jshint ignore: start */
-// seedrandom.min.js
-!function(a,b){function c(c,j,k){var n=[];j=1==j?{entropy:!0}:j||{};var s=g(f(j.entropy?[c,i(a)]:null==c?h():c,3),n),t=new d(n),u=function(){for(var a=t.g(m),b=p,c=0;q>a;)a=(a+c)*l,b*=l,c=t.g(1);for(;a>=r;)a/=2,b/=2,c>>>=1;return(a+c)/b};return u.int32=function(){return 0|t.g(4)},u.quick=function(){return t.g(4)/4294967296},u["double"]=u,g(i(t.S),a),(j.pass||k||function(a,c,d,f){return f&&(f.S&&e(f,t),a.state=function(){return e(t,{})}),d?(b[o]=a,c):a})(u,s,"global"in j?j.global:this==b,j.state)}function d(a){var b,c=a.length,d=this,e=0,f=d.i=d.j=0,g=d.S=[];for(c||(a=[c++]);l>e;)g[e]=e++;for(e=0;l>e;e++)g[e]=g[f=s&f+a[e%c]+(b=g[e])],g[f]=b;(d.g=function(a){for(var b,c=0,e=d.i,f=d.j,g=d.S;a--;)b=g[e=s&e+1],c=c*l+g[s&(g[e]=g[f=s&f+b])+(g[f]=b)];return d.i=e,d.j=f,c})(l)}function e(a,b){return b.i=a.i,b.j=a.j,b.S=a.S.slice(),b}function f(a,b){var c,d=[],e=typeof a;if(b&&"object"==e)for(c in a)try{d.push(f(a[c],b-1))}catch(g){}return d.length?d:"string"==e?a:a+"\0"}function g(a,b){for(var c,d=a+"",e=0;e<d.length;)b[s&e]=s&(c^=19*b[s&e])+d.charCodeAt(e++);return i(b)}function h(){try{if(j)return i(j.randomBytes(l));var b=new Uint8Array(l);return(k.crypto||k.msCrypto).getRandomValues(b),i(b)}catch(c){var d=k.navigator,e=d&&d.plugins;return[+new Date,k,e,k.screen,i(a)]}}function i(a){return String.fromCharCode.apply(0,a)}var j,k=this,l=256,m=6,n=52,o="random",p=b.pow(l,m),q=b.pow(2,n),r=2*q,s=l-1;if(b["seed"+o]=c,g(b.random(),a),"object"==typeof module&&module.exports){module.exports=c;try{j=require("crypto")}catch(t){}}else"function"==typeof define&&define.amd&&define(function(){return c})}([],Math);
-/* jshint ignore: end */
-
 var Collectors                   = Java.type("java.util.stream.Collectors");
+var MapleInventoryType           = Java.type("net.sf.odinms.client.MapleInventoryType");
 var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
 
 var status;
@@ -41,36 +37,70 @@ var casheqtypes = {
     109: ["Shields", 3700],
     110: ["Capes", 3000],
     111: ["Rings", 4000],
-    170: ["Weapons", 4100]
+    170: ["Weapons", 4100],
+    180: ["Pet equips", 1900],
 };
 var prizes =
 [
   /* ID       chance quantity */
-    [2049122, 0.408, 3], /* Chaos Scroll of Goodness 50% */
-    [2049100, 0.14,  8], /* Chaos Scroll 60% */
-    [1002357, 0.098, 1], /* Zakum Helmet (1) */
-    [4031519, 0.14,  1], /* VIP item of choice */
-    [2022121, 0.05,  5], /* Gelt Chocolate/Subani's Cauldron */
-    [2040807, 0.007, 2], /* GM scrolls */
-    [2044303, 0.007, 2],
-    [2044403, 0.007, 2],
-    [2043003, 0.007, 2],
-    [2043103, 0.007, 2],
-    [2043203, 0.007, 2],
-    [2043803, 0.007, 2],
-    [2043703, 0.007, 2],
-    [2044503, 0.007, 2],
-    [2044603, 0.007, 2],
-    [2044703, 0.007, 2],
-    [2043303, 0.007, 2],
-    [2049004, 0.08,  5]  /* Innocence Scroll */
+    [2049100, 0.2,     4], /* Chaos scrolls 60% */
+    [1002357, 0.15,    1], /* Zakum Helmet (1) */
+    [4031519, 0.09375, 1], /* VIP item of choice */
+    [2022121, 0.05,    3], /* Gelt chocolates/Subani's cauldrons */
+    [2040807, 0.008,   2], /* GM scrolls */
+    [2044303, 0.008,   2],
+    [2044403, 0.008,   2],
+    [2043003, 0.008,   2],
+    [2043103, 0.008,   2],
+    [2043203, 0.008,   2],
+    [2043803, 0.008,   2],
+    [2043703, 0.008,   2],
+    [2044503, 0.008,   2],
+    [2044603, 0.008,   2],
+    [2044703, 0.008,   2],
+    [2043303, 0.008,   2],
+    [2049004, 0.08,    3], /* Innocence scrolls */
+    [4001126, 0.2,    26], /* Maple leaves */
+    [2340000, 0.13025, 2], /* White scrolls */
 ];
 var otherCash =
 [
-    5021024
+    5021024,
+    5170000,
+    5000000,
+    5000001,
+    5000002,
+    5000003,
+    5000004,
+    5000005,
+    5000006,
+    5000007,
+    5000008,
+    5000009,
+    5000010,
+    5000011,
+    5000012,
+    5000014,
+    5000017,
+    5000020,
+    5000022,
+    5000023,
+    5000024,
+    5000025,
+    5000028,
+    5000036,
+    5000041,
+    5000047,
 ];
-var nxratio = 600;
-var gachratio = 3;
+var otherPrice = 5000;
+var featUnlockables = {
+    23: "So, you uh... sell All-Cure Potions by any chance?",
+    31: "I want pet food. A lot of pet food.",
+    43: "Got any deals on... VIP Teleport Rocks?"
+};
+var unlockableselection;
+var nxratio = 250;
+var gachratio = 4;
 var wsratio = 1;
 var chairratio = 1;
 var appleratio = 3;
@@ -79,7 +109,6 @@ var chaosratiovp = 2;
 var chaosratiocs = 3;
 var gachratiovp = 8;
 var scrollratio = 3;
-var cogratio = 3;
 var fornx = false;
 var forgach = false;
 var forws = false;
@@ -90,12 +119,14 @@ var forchaos = false;
 var forgachvp = false;
 var forscroll = false;
 var forother = false;
-var forcog = false;
+var forunlockable = false;
 
 function basicType(id) {
     var bt = Math.floor(id / 10000);
     if (bt < 130) {
         return bt;
+    } else if (bt >= 180) {
+        return 180;
     } else {
         return 170;
     }
@@ -112,8 +143,7 @@ function getCashList() {
 function start() {
     var p = cm.getPlayer();
     ii = MapleItemInformationProvider.getInstance();
-    gachratio = false ? 2 : 3; // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    Math.seedrandom("F" + p.getName() + "y" + p.getId() + ":" + p.getMeso() + "#" + p.getHp() + "l", { entropy: true });
+    gachratio = p.hasFeat(1) ? 3 : 4;
     status = -1;
     action(1, 0, 0);
 }
@@ -163,7 +193,7 @@ function action(mode, type, selection) {
                 selection = 2;
             } else if (status >= 4 && type === 1 && mode === 1) {
                 if (forother) {
-                    if (cm.buyWithNx(2700)) {
+                    if (cm.buyWithNx(otherPrice)) {
                         cm.gainItem(purchase, 1);
                         status = 1;
                         selection = 2;
@@ -208,16 +238,15 @@ function action(mode, type, selection) {
                 return;
             }
             forcash = false;
-            cm.sendSimple("Hi there, I'm Mia. You can cash in your #bmaple leaves#k to me in exchange for gachapon tickets (3:1, or 2:1 if you've done all quests), NX (1:" + nxratio + "), or Onyx Apples (" + appleratio + ":1)!\r\n\r\n#L0#I'd like to trade in my maple leaves for NX.#l\r\n#L1#I'd like to trade in my maple leaves for gachapon tickets.#l\r\n#L7#I'd like to trade in my maple leaves for Unripe Onyx Apples.#l\r\n#L2#I'd like to buy NX equipment.#l\r\n#L3#I heard you sell some items on the side for mesos.#l\r\n#L4#I have a present for you.#l\r\n#L5#I'd like to trade in " + chairratio + " of my vote points for a random chair.#l\r\n#L6#I'd like to trade in some vote points for White Scrolls.#l\r\n#L8#I'd like to trade in some vote points for AP Resets.#l\r\n#L9#I'd like to trade in some vote points for Chaos Scrolls (" + chaosratiovp + ":" + chaosratiocs + ").#l\r\n#L10#I'd like to trade in some vote points for gachapon tickets (1:" + gachratiovp + ").#l\r\n#L11#I'd like to trade in some vote points for Chaos Scrolls of Goodness (" + cogratio + " vote points per CoG).#l");
+            cm.sendSimple("Hi there, I'm Mia. You can cash in your #bmaple leaves#k to me in exchange for gachapon tickets (4:1, or 3:1 if you've attained the #eAdventuresome completionist#n feat), NX (1:" + nxratio + "), or Unripe Onyx Apples (" + appleratio + ":1)!\r\n\r\n#L0#I'd like to trade in my maple leaves for NX.#l\r\n#L1#I'd like to trade in my maple leaves for gachapon tickets.#l\r\n#L7#I'd like to trade in my maple leaves for Unripe Onyx Apples.#l\r\n#L2#I'd like to buy NX equipment.#l\r\n#L3#I heard you sell some items on the side for mesos.#l\r\n#L4#I have a present for you.#l\r\n#L5#I'd like to trade in " + chairratio + " of my vote points for a random chair.#l\r\n#L6#I'd like to trade in some vote points for White Scrolls.#l\r\n#L8#I'd like to trade in some vote points for AP Resets.#l\r\n#L9#I'd like to trade in some vote points for Chaos Scrolls (" + chaosratiovp + ":" + chaosratiocs + ").#l\r\n#L10#I'd like to trade in some vote points for gachapon tickets (1:" + gachratiovp + ").#l\r\n#L12#I heard you had... something special for me.#l");
         } else if (status === 1) {
             if (selection === 0) {
                 if (cm.itemQuantity(4001126) < 1) {
                     cm.sendOk("You don't have any maple leaves!");
                     cm.dispose();
                     return;
-                } else {
-                    cm.sendGetNumber("How many maple leaves would you like to trade in?", cm.itemQuantity(4001126), 1, cm.itemQuantity(4001126));
                 }
+                cm.sendGetNumber("How many maple leaves would you like to trade in?", cm.itemQuantity(4001126), 1, cm.itemQuantity(4001126));
                 fornx = true;
             } else if (selection === 1) {
                 if (cm.itemQuantity(4001126) < gachratio) {
@@ -360,179 +389,216 @@ function action(mode, type, selection) {
                     cm.dispose();
                     return;
                 }
-            } else if (selection === 11) {
-                vp = p.getVotePoints();
-                if (vp >= cogratio) {
-                    cm.sendGetNumber("How many Chaos Scrolls of Goodness would you like to trade for?\r\n\r\n(" + cogratio + " vp -> 1 Chaos Scroll of Goodness)", Math.floor(vp / cogratio), 1, Math.floor(vp / cogratio));
-                    forcog = true;
-                } else {
-                    cm.sendOk("I don't think you have enough vote points for this (" + cogratio + " vote points per CoG).");
-                    cm.dispose();
+            } else if (selection === 11) { // Unused
+            } else if (selection === 12) {
+                var selectionStr =
+                    Object
+                        .keys(featUnlockables)
+                        .filter(function(fid) {
+                            return p.hasFeat(+fid);
+                        })
+                        .reduce(function(accu, fid) {
+                            return accu + "\r\n#L" + fid + "#" + featUnlockables[fid] + "#l";
+                        }, "");
+                if (selectionStr === "") {
+                    cm.sendPrev("Oh... ummmm...\r\n\r\nNot sure where you heard that from, hun!");
                     return;
                 }
+                cm.sendSimple("Oh, right! Of course! Just pick one:\r\n" + selectionStr);
+                forunlockable = true;
             }
         } else if (status === 2) {
             if (mode < 1) {
                 cm.dispose();
                 return;
-            } else {
-                if (fornx) {
-                    if (selection > cm.itemQuantity(4001126)) {
-                        cm.sendOk("You don't have that many leaves!");
-                        cm.dispose();
-                        return;
-                    }
-                    cm.gainItem(4001126, -1 * selection);
-                    cm.modifyNx(selection * nxratio);
-                    cm.sendOk("Thank you! You've been awarded with #b" + (selection * nxratio) + "#k NX.");
+            }
+            if (fornx) {
+                if (selection > cm.itemQuantity(4001126)) {
+                    cm.sendOk("You don't have that many leaves!");
                     cm.dispose();
                     return;
-                } else if (forgach) {
-                    leavestotrade = selection - (selection % gachratio);
-                    var ticketplural = "ticket";
-                    if (Math.floor(leavestotrade / gachratio) > 1) {
-                        ticketplural = "tickets";
-                    }
-                    if (leavestotrade > cm.itemQuantity(4001126)) {
-                        cm.sendOk("You don't have that many leaves!");
-                        cm.dispose();
-                        return;
-                    }
-
-                    cm.gainItem(4001126, -1 * leavestotrade);
-                    cm.gainItem(5220000, Math.round(leavestotrade / gachratio));
-                    cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / gachratio) + "#k gachapon " + ticketplural + ".");
+                }
+                cm.gainItem(4001126, -1 * selection);
+                cm.modifyNx(selection * nxratio);
+                cm.sendOk("Thank you! You've been awarded with #b" + (selection * nxratio) + "#k NX.");
+                cm.dispose();
+                return;
+            } else if (forgach) {
+                leavestotrade = selection - (selection % gachratio);
+                var ticketplural = "ticket";
+                if (Math.floor(leavestotrade / gachratio) > 1) {
+                    ticketplural = "tickets";
+                }
+                if (leavestotrade > cm.itemQuantity(4001126)) {
+                    cm.sendOk("You don't have that many leaves!");
                     cm.dispose();
                     return;
-                } else if (forws) {
-                    vp = p.getVotePoints();
-                    if (selection > vp) {
-                        cm.sendOk("You don't have that many vote points!");
-                        cm.dispose();
-                        return;
-                    }
+                }
 
-                    p.setVotePoints(vp - selection);
-                    cm.gainItem(2340000, selection * wsratio);
-                    cm.sendOk("Thanks! I've given you #b" + (selection * wsratio) + "#k White Scroll" + (selection * wsratio > 1 ? "s" : "") + ".");
+                cm.gainItem(4001126, -1 * leavestotrade);
+                cm.gainItem(5220000, Math.round(leavestotrade / gachratio));
+                cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / gachratio) + "#k gachapon " + ticketplural + ".");
+                cm.dispose();
+                return;
+            } else if (forws) {
+                vp = p.getVotePoints();
+                if (selection > vp) {
+                    cm.sendOk("You don't have that many vote points!");
                     cm.dispose();
                     return;
-                } else if (forapple) {
-                    leavestotrade = selection - (selection % appleratio);
-                    var appleplural = "Apple";
-                    if (Math.floor(leavestotrade / appleratio) > 1) {
-                        appleplural = "Apples";
-                    }
-                    if (leavestotrade > cm.itemQuantity(4001126)) {
-                        cm.sendOk("You don't have that many leaves!");
-                        cm.dispose();
-                        return;
-                    }
+                }
 
-                    cm.gainItem(4001126, -1 * leavestotrade);
-                    cm.gainItem(2012008, Math.round(leavestotrade / appleratio));
-                    cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / appleratio) + "#k Unripe Onyx " + appleplural + ".");
+                p.setVotePoints(vp - selection);
+                cm.gainItem(2340000, selection * wsratio);
+                cm.sendOk("Thanks! I've given you #b" + (selection * wsratio) + "#k White Scroll" + (selection * wsratio > 1 ? "s" : "") + ".");
+                cm.dispose();
+                return;
+            } else if (forapple) {
+                leavestotrade = selection - (selection % appleratio);
+                var appleplural = "Apple";
+                if (Math.floor(leavestotrade / appleratio) > 1) {
+                    appleplural = "Apples";
+                }
+                if (leavestotrade > cm.itemQuantity(4001126)) {
+                    cm.sendOk("You don't have that many leaves!");
                     cm.dispose();
                     return;
-                } else if (forcash) {
-                    switch (selection) {
-                        case 0:
-                            search = "list";
-                            cm.sendGetText("Enter your search query:");
-                            break;
-                        case 1:
-                            search = "lucky";
-                            cm.sendGetText("Enter your search query:");
-                            break;
-                        case 2:
-                            search = "id";
-                            cm.sendGetNumber("Enter the ID of the equip:", 1092161, 1000000, 1702999);
-                            break;
-                        case 3:
-                            p.toggleGenderFilter();
-                            cm.sendPrev("The gender filter is now turned " + (p.genderFilter() ? "on" : "off") + ".");
-                            break;
-                        case 4:
-                            var otherString = "These items cost #d2700 NX#k each. Click an item below to purchase it:\r\n";
-                            for (i = 0; i < otherCash.length; ++i) {
-                                var id = otherCash[i];
-                                otherString += (i % 4 === 0 ? "\r\n" : "") + "#L" + id + "##i" + id + "##l  ";
-                            }
-                            cm.sendSimple(otherString);
-                            forother = true;
-                            break;
-                        default:
-                            casheqs = [];
-                            cashpage = 0;
-                            cashtype = selection;
-                            var casheqlist = cashtype === 170 ? ii.cashEquipsByType(130, 170) : ii.cashEquipsByType(cashtype);
-                            if (!p.genderFilter()) {
-                                casheqlist.forEach(function(id) { casheqs.push(id); });
-                            } else {
-                                casheqlist
-                                    .stream()
-                                    .filter(function(id) {
-                                        var gender = Math.floor((id % 10000) / 1000);
-                                        return gender > 1 || gender === p.getGender();
-                                    })
-                                    .forEach(function(id) { casheqs.push(id); });
-                            }
+                }
 
-                            cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + getCashList());
-                            break;
-                    }
-                } else if (forap) {
-                    vp = p.getVotePoints();
-                    if (selection > vp) {
-                        cm.sendOk("You don't have that many vote points!");
-                        cm.dispose();
-                        return;
-                    }
+                cm.gainItem(4001126, -1 * leavestotrade);
+                cm.gainItem(2012008, Math.round(leavestotrade / appleratio));
+                cm.sendOk("Thank you! I've given you #b" + Math.round(leavestotrade / appleratio) + "#k Unripe Onyx " + appleplural + ".");
+                cm.dispose();
+                return;
+            } else if (forcash) {
+                switch (selection) {
+                    case 0:
+                        search = "list";
+                        cm.sendGetText("Enter your search query:");
+                        break;
+                    case 1:
+                        search = "lucky";
+                        cm.sendGetText("Enter your search query:");
+                        break;
+                    case 2:
+                        search = "id";
+                        cm.sendGetNumber("Enter the ID of the equip:", 1092161, 1000000, 1702999);
+                        break;
+                    case 3:
+                        p.toggleGenderFilter();
+                        cm.sendPrev("The gender filter is now turned " + (p.genderFilter() ? "on" : "off") + ".");
+                        break;
+                    case 4:
+                        var otherString = "These items cost #d" + otherPrice + " NX#k each. Click an item below to purchase it:\r\n";
+                        for (i = 0; i < otherCash.length; ++i) {
+                            var id = otherCash[i];
+                            otherString += (i % 4 === 0 ? "\r\n" : "") + "#L" + id + "##i" + id + "##l  ";
+                        }
+                        cm.sendSimple(otherString);
+                        forother = true;
+                        break;
+                    default:
+                        casheqs = [];
+                        cashpage = 0;
+                        cashtype = selection;
+                        var casheqlist = cashtype === 170 ? ii.cashEquipsByType(130, 170) : cashtype === 180 ? ii.cashEquipsByType(180, 183) : ii.cashEquipsByType(cashtype);
+                        if (!p.genderFilter()) {
+                            casheqlist.forEach(function(id) { casheqs.push(id); });
+                        } else {
+                            casheqlist
+                                .stream()
+                                .filter(function(id) {
+                                    var gender = Math.floor((id % 10000) / 1000);
+                                    return gender > 1 || gender === p.getGender();
+                                })
+                                .forEach(function(id) { casheqs.push(id); });
+                        }
 
-                    p.setVotePoints(vp - selection);
-                    cm.gainItem(5050000, selection * apratio);
-                    cm.sendOk("Thanks! I've given you #b" + (selection * apratio) + "#k AP Resets.");
+                        cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + getCashList());
+                        break;
+                }
+            } else if (forap) {
+                vp = p.getVotePoints();
+                if (selection > vp) {
+                    cm.sendOk("You don't have that many vote points!");
                     cm.dispose();
                     return;
-                } else if (forchaos) {
-                    vp = p.getVotePoints();
-                    if (selection > vp) {
-                        cm.sendOk("You don't have that many vote points!");
-                        cm.dispose();
-                        return;
-                    }
+                }
 
-                    p.setVotePoints(vp - selection);
-                    cm.gainItem(2049100, Math.round(selection * chaosratiocs / chaosratiovp));
-                    cm.sendOk("Thanks! I've given you #b" + Math.round(selection * chaosratiocs / chaosratiovp) + "#k Chaos Scrolls.");
+                p.setVotePoints(vp - selection);
+                cm.gainItem(5050000, selection * apratio);
+                cm.sendOk("Thanks! I've given you #b" + (selection * apratio) + "#k AP Resets.");
+                cm.dispose();
+                return;
+            } else if (forchaos) {
+                vp = p.getVotePoints();
+                if (selection > vp) {
+                    cm.sendOk("You don't have that many vote points!");
                     cm.dispose();
                     return;
-                } else if (forgachvp) {
-                    vp = p.getVotePoints();
-                    if (selection > vp) {
-                        cm.sendOk("You don't have that many vote points!");
-                        cm.dispose();
-                        return;
-                    }
+                }
 
-                    p.setVotePoints(vp - selection);
-                    cm.gainItem(5220000, selection * gachratiovp);
-                    cm.sendOk("Thanks! I've given you\r\n\r\n#i5220000#   #bx" + (selection * gachratiovp) + "#k.");
+                p.setVotePoints(vp - selection);
+                cm.gainItem(2049100, Math.round(selection * chaosratiocs / chaosratiovp));
+                cm.sendOk("Thanks! I've given you #b" + Math.round(selection * chaosratiocs / chaosratiovp) + "#k Chaos Scrolls.");
+                cm.dispose();
+                return;
+            } else if (forgachvp) {
+                vp = p.getVotePoints();
+                if (selection > vp) {
+                    cm.sendOk("You don't have that many vote points!");
                     cm.dispose();
                     return;
-                } else if (forcog) {
-                    vp = p.getVotePoints();
-                    if (selection * cogratio > vp) {
-                        cm.sendOk("You don't have that many vote points!");
+                }
+
+                p.setVotePoints(vp - selection);
+                cm.gainItem(5220000, selection * gachratiovp);
+                cm.sendOk("Thanks! I've given you\r\n\r\n#i5220000#   #bx" + (selection * gachratiovp) + "#k.");
+                cm.dispose();
+                return;
+            } else if (forunlockable) {
+                unlockableselection = selection;
+                var inv, slotsLeft, mesoLimit, limit;
+                switch (selection) {
+                    case 23:
+                        inv = p.getInventory(MapleInventoryType.USE);
+                        slotsLeft = inv.getSlotLimit() - inv.getSize();
+                        if (slotsLeft < 1) {
+                            cm.sendOk("Looks like your use inventory is full already, sorry hun.");
+                            cm.dispose();
+                            return;
+                        }
+                        mesoLimit = Math.floor(p.getMeso() / 40000);
+                        limit = Math.min(slotsLeft * 100, mesoLimit);
+                        cm.sendGetNumber("How many would ya like?\r\nThey're #e#d40,000#k#n mesos a pop.", 1, 1, limit);
+                        break;
+                    case 31:
+                        inv = p.getInventory(MapleInventoryType.USE);
+                        slotsLeft = inv.getSlotLimit() - inv.getSize();
+                        if (slotsLeft < 1) {
+                            cm.sendOk("Looks like your use inventory is full already, sorry hun.");
+                            cm.dispose();
+                            return;
+                        }
+                        mesoLimit = Math.floor(p.getMeso() / 23);
+                        limit = Math.min(slotsLeft * 200, mesoLimit);
+                        cm.sendGetNumber("How many cartons would ya like?\r\nThey're #e#d23#k#n mesos a pop.", 1, 1, limit);
+                        break;
+                    case 43:
+                        inv = p.getInventory(MapleInventoryType.CASH);
+                        slotsLeft = inv.getSlotLimit() - inv.getSize();
+                        if (slotsLeft < 1) {
+                            cm.sendOk("Looks like your cash inventory is full already, sorry hun.");
+                            cm.dispose();
+                            return;
+                        }
+                        mesoLimit = Math.floor(p.getMeso() / 500000);
+                        limit = Math.min(slotsLeft * 100, mesoLimit);
+                        cm.sendGetNumber("How many rocks do ya want?\r\nThey're #e#d500,000#k#n mesos a pop.", 1, 1, limit);
+                        break;
+                    default:
                         cm.dispose();
                         return;
-                    }
-
-                    p.setVotePoints(vp - selection * cogratio);
-                    cm.gainItem(2049122, selection);
-                    cm.sendOk("Thanks! I've given you #b" + selection + "#k Chaos Scrolls of Goodness.");
-                    cm.dispose();
-                    return;
                 }
             }
         } else if (status >= 3) {
@@ -563,9 +629,7 @@ function action(mode, type, selection) {
                             break;
                         case "lucky":
                             var t = cm.getText();
-                            //print(t);
                             var result = ii.singleCashEquipSearch(t);
-                            //print(result);
                             if (result !== 0) {
                                 cm.sendSimple("Here is the best match for your query. Click the item to purchase it:\r\n\r\n#L0#This is not quite what I had in mind.#l\r\n\r\n#L" + result + "##i" + result + "#\t#r" + casheqtypes[basicType(result)][1] + " NX#k#l");
                                 searchpurchase = true;
@@ -621,12 +685,44 @@ function action(mode, type, selection) {
                         default: // Purchase
                             purchase = selection;
                             if (forother) {
-                                cm.sendYesNo("Are you sure you'd like to purchase  #i" + selection + "#  for #r2700 NX#k?");
+                                cm.sendYesNo("Are you sure you'd like to purchase  #i" + selection + "#  for #r" + otherPrice + " NX#k?");
                                 break;
                             }
                             cm.sendYesNo("Are you sure you'd like to purchase  #i" + casheqs[purchase - 3] + "#  for #r" + casheqtypes[basicType(casheqs[purchase - 3])][1] + " NX#k?");
                             break;
                     }
+                }
+            } else if (forunlockable) {
+                if (selection < 0) {
+                    cm.dispose();
+                    return;
+                }
+                var mesos;
+                switch (unlockableselection) {
+                    case 23:
+                        mesos = selection * 40000;
+                        cm.gainMeso(-mesos);
+                        cm.gainItem(2022178, selection);
+                        cm.sendOk("Alrighty, here you go!:\r\n\r\n#i2022178#  x" + selection);
+                        cm.dispose();
+                        return;
+                    case 31:
+                        mesos = selection * 23;
+                        cm.gainMeso(-mesos);
+                        cm.gainItem(2120000, selection);
+                        cm.sendOk("Alrighty, here you go!:\r\n\r\n#i2120000#  x" + selection);
+                        cm.dispose();
+                        return;
+                    case 43:
+                        mesos = selection * 500000;
+                        cm.gainMeso(-mesos);
+                        cm.gainItem(5041000, selection);
+                        cm.sendOk("Alrighty, here you go!:\r\n\r\n#i5041000#  x" + selection);
+                        cm.dispose();
+                        return;
+                    default:
+                        cm.dispose();
+                        return;
                 }
             } else {
                 cm.sendOk("Report this bug using #d@gm#k.");

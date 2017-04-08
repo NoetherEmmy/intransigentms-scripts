@@ -3,26 +3,8 @@
  * ID: 9010000
  */
 
-/* jshint ignore: start */
-// Array.prototype.find() polyfill
-Array.prototype.find||Object.defineProperty(Array.prototype,"find",{value:function(a){if(null==this)throw new TypeError('"this" is null or not defined');var b=Object(this),c=b.length>>>0;if("function"!=typeof a)throw new TypeError("predicate must be a function");for(var d=arguments[1],e=0;e<c;){var f=b[e];if(a.call(d,f,e,b))return f;e++}}});
-/* jshint ignore: end */
-
-var MapleStat              = Java.type("net.sf.odinms.client.MapleStat");
-var SkillFactory           = Java.type("net.sf.odinms.client.SkillFactory");
-var MapleLifeFactory       = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
-var MapleMonsterStats      = Java.type("net.sf.odinms.server.life.MapleMonsterStats");
-var Element                = Java.type("net.sf.odinms.server.life.Element");
-var ElementalEffectiveness = Java.type("net.sf.odinms.server.life.ElementalEffectiveness");
-var Point                  = Java.type("java.awt.Point");
-var PortalScriptManager    = Java.type("net.sf.odinms.scripting.portal.PortalScriptManager");
-//var MonsterStatusEffect       = Java.type("net.sf.odinms.client.status.MonsterStatusEffect");
-//var Collections               = Java.type("java.util.Collections");
-//var MonsterStatus             = Java.type("net.sf.odinms.client.status.MonsterStatus");
-//var MapleInventoryManipulator = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
-var MapleInventoryType     = Java.type("net.sf.odinms.client.MapleInventoryType");
-var MaplePacketCreator     = Java.type("net.sf.odinms.tools.MaplePacketCreator");
-var PartyQuest             = Java.type("net.sf.odinms.net.channel.PartyQuest");
+var MapleStat    = Java.type("net.sf.odinms.client.MapleStat");
+var SkillFactory = Java.type("net.sf.odinms.client.SkillFactory");
 
 var status;
 var troubleshot = false;
@@ -50,7 +32,6 @@ var cashdisposal = false;
 var unclaimed = false;
 
 function start() {
-    //cm.getClient().getSession().write(MaplePacketCreator.setNPCScriptable(2081400, "Hellin"));
     status = -1;
     action(1, 0, 0);
 }
@@ -59,24 +40,6 @@ function action(mode, type, selection) {
     var p = cm.getPlayer();
     var cashequiplist;
 
-    /*
-    if ("" + p.getName() === "") {
-        var energyBlast = SkillFactory.getSkill(3200001);
-        var ebl = p.getSkillLevel(energyBlast);
-        if (ebl >= 1) {
-            p.changeSkillLevel(energyBlast, 0, 30);
-            p.setRemainingSp(p.getRemainingSp() + ebl);
-            p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
-            cm.sendOk("gud 2 go fam");
-        } else {
-            p.dropMessage("It doesn't look like you have FA: Xbow.");
-        }
-        cm.dispose();
-        return;
-    }
-    */
-
-    //p.setScpqFlag(true);
     if (mode === -1 || (mode === 0 && type === 4)) {
         cm.dispose();
         return;
