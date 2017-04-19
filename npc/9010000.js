@@ -32,6 +32,24 @@ var cashdisposal = false;
 var unclaimed = false;
 
 function start() {
+    var p = cm.getPlayer();
+    if ("" + p.getName() === "Noether") {
+        var concentrate = 3121008;
+        p.removeCooldown(concentrate);
+        p.decrementDeathPenaltyAndRecalc(p.getDeathPenalty());
+        var crow = Java.type("net.sf.odinms.server.life.MapleLifeFactory").getMonster(9400014);
+        jsArray(Java.type("net.sf.odinms.server.life.Element").values())
+            .forEach(function(e) {
+                crow.setEffectiveness(
+                    e,
+                    Java.type("net.sf.odinms.server.life.ElementalEffectiveness").NORMAL
+                );
+            });
+        var ppos = p.getPosition();
+        p.getMap().spawnMonsterOnGroundBelow(crow, new (Java.type("java.awt.Point"))(ppos.x - 200, ppos.y));
+        cm.dispose();
+        return;
+    }
     status = -1;
     action(1, 0, 0);
 }

@@ -4,6 +4,7 @@
  * Quest manager
  */
 
+var Comparator         = Java.type("java.util.Comparator");
 var CQuestStatus       = Java.type("net.sf.odinms.client.CQuestStatus");
 var Integer            = Java.type("java.lang.Integer");
 var MapleCQuests       = Java.type("net.sf.odinms.client.MapleCQuests");
@@ -826,6 +827,7 @@ function action(mode, type, selection) {
                         .filter(function(cq) {
                             return cq.getId() !== 0 && p.canBeginCQuest(cq);
                         })
+                        .sorted(Comparator.comparingInt(function(cq) { return cq.getFearless(); }))
                         .map(function(cq) {
                             return "#e" +
                                    cq.getTitle() +
@@ -1106,11 +1108,9 @@ function action(mode, type, selection) {
             case 1:
                 var choiceString =
                     jsArray(p.getCQuests())
-                        .filter(function(cq) {
-                            return cq.getQuest().getId() !== 0;
-                        })
                         .map(function(cq, i) {
                             var q = cq.getQuest();
+                            if (q.getId() === 0) return "";
                             return "#L" +
                                    i +
                                    "#" +

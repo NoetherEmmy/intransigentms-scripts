@@ -1,22 +1,42 @@
 /*
- * @Name         Coco
- * @NPC:         9000017
- * @Purpose:     Hair/Face/Eye Changer
- * @Map:         Free Market & Henesys
+ * Coco
+ * Hair/Face/Eye/Gender/Name Changer
+ * Free Market Entrance; Henesys
+ *
+ * ID: 9000017
  */
- 
-var MaplePacketCreator           = Java.type("net.sf.odinms.tools.MaplePacketCreator");
-var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
-var Collectors                   = Java.type("java.util.stream.Collectors");
+
 var MapleCharacter               = Java.type("net.sf.odinms.client.MapleCharacter");
 var MapleCharacterUtil           = Java.type("net.sf.odinms.client.MapleCharacterUtil");
+var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
+var MaplePacketCreator           = Java.type("net.sf.odinms.tools.MaplePacketCreator");
 
-var status = 0;
-var beauty = 0;
+var status;
+var beauty = -1;
+var insufficientNxMsg = function() {
+    return "Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" +
+           cm.getNx(1) +
+           "#k\r\nMaple points: #r" +
+           cm.getNx(2) +
+           "#k\r\nCard NX: #d" +
+           cm.getNx(3) +
+           "#k";
+};
 var skin = [0, 1, 2, 3, 4, 9]; // 5, 10 removed (Invalid pointer).
 var smallPrice = 1500;
 var largePrice = 2000;
+var filteredHairs = [3202, 3215, 3520, 3924, 3925, 3926];
+var filteredFaces = [20692];
 var ii, hairs, faces, lenses, a;
+
+function identity(x) {
+    return x;
+}
+
+function sameFace(id1, id2) {
+    return id1 - Math.floor(id1 % 1000 / 100) * 100 ===
+           id2 - Math.floor(id2 % 1000 / 100) * 100;
+}
 
 function start() {
     ii = MapleItemInformationProvider.getInstance();
@@ -96,12 +116,10 @@ function action(mode, type, selection) {
         if (selection === 0) { /* Skin color */
             cm.sendStyle("Changing your skin will cost you #r" + smallPrice + " NX#k.\r\nPick one:", skin);
         } else if (selection === 1) { /* Hair color */
-            hairs = [];
-            ii.getAllColors(p.getHair()).forEach(function(x) { hairs.push(x); });
+            hairs = ii.getAllColors(p.getHair()).stream().mapToInt(identity).toArray();
             cm.sendStyle("Changing your hair color will cost you #r" + smallPrice + " NX#k.\r\nPick one:", hairs);
         } else if (selection === 2) { /* Lens color */
-            lenses = [];
-            ii.getAllColors(p.getFace()).forEach(function(x) { lenses.push(x); });
+            lenses = ii.getAllColors(p.getFace()).stream().mapToInt(identity).toArray();
             cm.sendStyle("Changing your lens will cost you #r" + smallPrice + " NX#k.\r\nPick one:", lenses);
         } else if (selection === 3) { /* Gender */
             cm.sendYesNo("Changing your gender will cost you #r" + smallPrice + " NX#k. Are you sure you want to undergo the transformation?");
@@ -109,31 +127,45 @@ function action(mode, type, selection) {
             cm.sendGetText("Changing your name will cost you #r#e3 Vote Points#n#k.\r\n\r\nIf you're sure you want to change your name, please enter a new one below:");
         } else if (selection >= 100 && selection < 400) { /* Hairstyle */
             color = p.getHair() % 10; // Last digit of ID corresponds to the color of the hair.
-            hairs = [];
-            ii.getHairData(Math.floor(selection / 100) - 1, selection % 100)
-                               .stream()
-                               .filter(function(x) { return x % 10 === color && Math.floor(x / 10) !== 3925 && Math.floor(x / 10) !== 3520; })
-                               .collect(Collectors.toList())
-                               .forEach(function(x) { hairs.push(x); });
+            hairs =
+                ii.getHairData(Math.floor(selection / 100) - 1, selection % 100)
+                  .stream()
+                  .filter(function(x) { return x % 10 === color && filteredHairs.indexOf(Math.floor(x / 10)) === -1; })
+                  .mapToInt(identity)
+                  .toArray();
             if (hairs.length < 1) {
-                ii.getHairData(Math.floor(selection / 100) - 1, selection % 100).forEach(function(x) { hairs.push(x); });
+                hairs =
+                    ii.getHairData(Math.floor(selection / 100) - 1, selection % 100)
+                      .stream()
+                      .filter(function(x) { return filteredHairs.indexOf(Math.floor(x / 10)) === -1; })
+                      .mapToInt(identity)
+                      .toArray();
             }
-            var filteredHairs = [3202, 3215, 3924];
-            hairs = hairs.filter(function(x) {
-                return filteredHairs.indexOf(Math.floor(x / 10)) === -1;
-            });
             cm.sendStyle("Changing your hair will cost you #r" + largePrice + " NX#k.\r\nPick one:", hairs);
         } else if (selection >= 400 && selection < 700) { /* Face */
             color = p.getFace() % 1000;
             color = Math.floor(color / 100); // Hundreds place of ID corresponds to the color of the lenses.
-            faces = [];
-            ii.getFaceData(Math.floor(selection / 100) - 4, selection % 100)
-                               .stream()
-                               .filter(function(x) { return Math.floor(x % 1000 / 100) === color && !sameFace(x, 20692); })
-                               .collect(Collectors.toList())
-                               .forEach(function(x) { faces.push(x); });
+            faces =
+                ii.getFaceData(Math.floor(selection / 100) - 4, selection % 100)
+                  .stream()
+                  .filter(function(x) {
+                      return Math.floor(x % 1000 / 100) === color &&
+                             !filteredFaces.some(function(ff) {
+                                 return sameFace(x, ff);
+                             });
+                  })
+                  .mapToInt(identity)
+                  .toArray();
             if (faces.length < 1) {
-                ii.getFaceData(Math.floor(selection / 100) - 4, selection % 100).forEach(function(x) { faces.push(x); });
+                ii.getFaceData(Math.floor(selection / 100) - 4, selection % 100)
+                  .stream()
+                  .filter(function(x) {
+                      return !filteredFaces.some(function(ff) {
+                          return sameFace(x, ff);
+                      });
+                  })
+                  .mapToInt(identity)
+                  .toArray();
             }
             cm.sendStyle("Changing your face will cost you #r" + largePrice + " NX#k.\r\nPick one:", faces);
         } else if (selection === 4) {
@@ -146,19 +178,19 @@ function action(mode, type, selection) {
             if (cm.buyWithNx(smallPrice)) {
                 cm.setSkin(skin[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         } else if (beauty === 1) {
             if (cm.buyWithNx(smallPrice)) {
                 cm.setHair(hairs[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         } else if (beauty === 2) {
             if (cm.buyWithNx(smallPrice)) {
                 cm.setFace(lenses[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         } else if (beauty === 3) {
             if (cm.buyWithNx(smallPrice)) {
@@ -168,6 +200,15 @@ function action(mode, type, selection) {
                 p.getMap().addPlayer(p);
             } else {
                 cm.sendOk("Sorry, you don't have enough NX to purchase a gender change.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+            }
+        } else if (beauty === 4) {
+            var result = ii.getAllColors(selection);
+            if (result.size() < 1 || filteredHairs.indexOf(Math.floor(selection / 10)) !== -1 || filteredFaces.some(function(ff) { return sameFace(selection, ff); })) {
+                cm.sendOk("Sorry, it seems we don't have that ID!");
+            } else {
+                a = result.stream().mapToInt(identity).toArray();
+                cm.sendStyle("Changing your look will cost you #r" + largePrice + " NX#k, plus another #r" + smallPrice + " NX#k if a different color than you already have is chosen.\r\nPick one:", a);
+                notEnteredId = false;
             }
         } else if (beauty === 5) {
             if (p.getVotePoints() >= 3) {
@@ -195,23 +236,13 @@ function action(mode, type, selection) {
             if (cm.buyWithNx(largePrice)) {
                 cm.setHair(hairs[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         } else if (beauty >= 400 && beauty < 700) {
             if (cm.buyWithNx(largePrice)) {
                 cm.setFace(faces[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
-            }
-        } else if (beauty === 4) {
-            var result = ii.getAllColors(selection);
-            a = [];
-            if (result.size() < 1) {
-                cm.sendOk("Sorry, it seems we don't have that ID!");
-            } else {
-                result.forEach(function(x) { a.push(x); });
-                cm.sendStyle("Changing your look will cost you #r" + largePrice + " NX#k, plus another #r" + smallPrice + " NX#k if a different color than you already have is chosen.\r\nPick one:", a);
-                notEnteredId = false;
+                cm.sendOk(insufficientNxMsg());
             }
         }
         if (notEnteredId) {
@@ -224,31 +255,26 @@ function action(mode, type, selection) {
         if (a[selection] < 30000) { // Face
             color = p.getFace() % 1000;
             color = Math.floor(color / 100);
-            if (Math.floor(a[selection] % 1000 / 100) != color) {
+            if (Math.floor(a[selection] % 1000 / 100) !== color) {
                 price += smallPrice;
             }
             if (cm.buyWithNx(price)) {
                 cm.setFace(a[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         } else { // Hair
             color = p.getHair() % 10;
-            if (a[selection] % 10 != color) {
+            if (a[selection] % 10 !== color) {
                 price += smallPrice;
             }
             if (cm.buyWithNx(price)) {
                 cm.setHair(a[selection]);
             } else {
-                cm.sendOk("Sorry, you don't have enough NX to purchase this look.\r\n\r\nPaypal NX: #b" + cm.getNx(1) + "#k\r\nMaple points: #r" + cm.getNx(2) + "#k\r\nCard NX: #d" + cm.getNx(3) + "#k");
+                cm.sendOk(insufficientNxMsg());
             }
         }
         cm.dispose();
         return;
     }
-}
-
-function sameFace(id1, id2) {
-    return id1 - Math.floor(id1 % 1000 / 100) * 100 ===
-           id2 - Math.floor(id2 % 1000 / 100) * 100;
 }

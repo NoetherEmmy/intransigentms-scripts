@@ -6,6 +6,8 @@
  * ID: 9200000
  */
 
+var MapleInventoryManipulator    = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
+var MapleInventoryType           = Java.type("net.sf.odinms.client.MapleInventoryType");
 var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
 var MapleJob                     = Java.type("net.sf.odinms.client.MapleJob");
 var MapleLifeFactory             = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
@@ -83,6 +85,7 @@ var vipitems =
     1382099,
     1372078,
     1422063,
+    1432081,
     1032084,
     1302147,
     1312062,
@@ -172,11 +175,14 @@ function maxSkillMasteries(p) {
 
 function start() {
     var p = cm.getPlayer();
-    if ("" + p.getName() === "") {
-        canusecody = true;
+    if ("" + p.getName() === "Noether") {
+        //supercody = true;
+        //p.setRemainingAp(0);
+        //p.updateSingleStat(MapleStat.AVAILABLEAP, 0);
+        //26404798
     }
     ii = MapleItemInformationProvider.getInstance();
-    test = true;
+    test = false;
     status = -1;
     action(1, 0, 0);
 }
@@ -682,8 +688,9 @@ function action(mode, type, selection) {
             if (firstSelection === 0) {
                 cm.sendPrev("If you're looking to make a job advancement, please see your respective instructor in Victoria Island:\r\n\r\nWarriors: #bDances With Balrog#k of #rPerion#k\r\nArchers: #bAthena Pierce#k of #rHenesys#k\r\nThieves: #bDark Lord#k of #rKerning City#k\r\nMagicians: #bGrendel The Really Old#k of #rEllinia#k\r\nPirates: #bKyrin#k of #rNautilus Port#k");
             } else if (firstSelection === 1) {
-                if (!p.hasFeat(22)) {
-                    cm.sendPrev("Sorry, but I can't craft items for you until you've attained the #eLiberator of Homelessness#n feat.");
+                if (!p.hasFeat(22) && !p.isGM()) {
+                    cm.sendOk("Sorry, but I can't craft items for you until you've attained the #eLiberator of Homelessness#n feat.");
+                    cm.dispose();
                     return;
                 }
                 var selectionstring = "";
@@ -718,15 +725,40 @@ function action(mode, type, selection) {
             }
             var canmake = true;
             for (i = 0; i < recipe.length; ++i) {
-                if (cm.itemQuantity(recipe[i][0]) < recipe[i][1]) {
-                    canmake = false;
-                    break;
+                var itemId = recipe[i][0];
+                if (!ii.isThrowingStar(itemId) && !ii.isBullet(itemId)) {
+                    if (cm.itemQuantity(itemId) < recipe[i][1]) {
+                        canmake = false;
+                        break;
+                    }
+                } else {
+                    if (p.getInventory(MapleInventoryType.USE).listById(itemId).size() < recipe[i][1]) {
+                        canmake = false;
+                        break;
+                    }
                 }
             }
             if (canmake) {
-                for (i = 0; i < recipe.length; ++i) {
-                    cm.gainItem(recipe[i][0], -recipe[i][1]);
-                }
+                recipe.forEach(function(recipeItem) {
+                    var itemId = recipeItem[0];
+                    var removeQty = recipeItem[1];
+                    if (!ii.isThrowingStar(itemId) && !ii.isBullet(itemId)) {
+                        cm.gainItem(itemId, -removeQty);
+                    } else {
+                        var itemOccurences = p.getInventory(MapleInventoryType.USE).listById(itemId);
+                        range(removeQty).forEach(function(j) {
+                            var theItem = itemOccurences.get(j);
+                            MapleInventoryManipulator.removeFromSlot(
+                                p.getClient(),
+                                MapleInventoryType.USE,
+                                theItem.getPosition(),
+                                theItem.getQuantity(),
+                                true,
+                                false
+                            );
+                        });
+                    }
+                });
                 cm.gainItem(selected, 1);
                 cm.sendOk("Congratulations! You have successfully forged:\r\n\r\n#i" + selected + "#");
                 cm.dispose();

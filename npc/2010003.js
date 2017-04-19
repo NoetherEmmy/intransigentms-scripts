@@ -9,7 +9,7 @@ var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
 var id = 9000;
-var recipepaper = -1;
+var recipepaper = 4032064;
 var gachratio = 5;
 var questText = "Hey, kid. Y'know what I'm thinkin'?\r\n\r\nI can't do this shit anymore. I am just terrible at making shoes -- I can't even put the soles in right, man. The whole shoe just fuckin' falls apart!\r\n\r\nPlus, I don't even like shoes, dude.\r\nI just want to #emake food#n. No one ever took me seriously when I said stuff like that though, with #r#eThe Chef#n#k having monopolized the entire fuckin' culinary industry for gods know how long...\r\n\r\nSay. Do you think you could, I dunno, help me out a bit?";
 
@@ -94,6 +94,9 @@ function action(mode, type, selection) {
             case 0:
                 if (cm.itemQuantity(recipepaper) > 0) {
                     cm.sendYesNo("Oh my god, are those recipes from The Chef himself?!");
+                    // TODO
+                    cm.dispose();
+                    return;
                 } else {
                     cm.sendOk("I need The Chef's recipes, man.\r\n\r\nI can't start a culinary enterprise like this -- not without the top-notch, bleeding-edge formulas.");
                     cm.dispose();

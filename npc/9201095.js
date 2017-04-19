@@ -136,29 +136,16 @@ var candidates, branch, skill, raise,
     skillResetJob, fromSkill, transferSp,
     base;
 
-function range(start, end, step) {
-    if (end === undefined) {
-        end = start;
-        start = 0;
-    }
-    if (!step) step = 1;
-    var r = [], i;
-    if (end < start) {
-        step = Math.abs(step);
-        for (i = start; i > end; i -= step) {
-            r.push(i);
-        }
-    } else if (step < 0) {
-        for (i = end; i > start; i += step) {
-            r.push(i);
-        }
-    } else {
-        for (i = start; i < end; i += step) {
-            r.push(i);
-        }
-    }
-    return r;
-}
+var isNonvirtualSpTarget = function(p, sid) {
+    var s = SkillFactory.getSkill(sid);
+    var maxLevel =
+        s.isFourthJob() ?
+            Math.min(p.getMasterLevel(s), s.getMaxLevel()) :
+            s.getMaxLevel();
+    return Math.floor(sid / 10000) === p.getJob().getId() &&
+           p.canLearnSkill(s) &&
+           p.getSkillLevel(s) < maxLevel;
+};
 
 function start() {
     var p = cm.getPlayer();
@@ -183,7 +170,8 @@ function start() {
 
 function action(mode, type, selection) {
     var p = cm.getPlayer();
-    var curSkillLevel, skillString, spReset;
+    var curSkillLevel, skillString, spReset,
+        s, maxLevel;
     if (mode < 0) {
         cm.dispose();
         return;
@@ -199,7 +187,7 @@ function action(mode, type, selection) {
     }
     switch (status) {
         case 0:
-            cm.sendSimple("Hey. So you wanna use #dvirtual skills#k, huh?\r\n\r\n#L0#I'd like to spend/remove skill points in virtual skills.#l\r\n#L1#I'd like to view the virtual skills I have.#l\r\n#L3#I need to put an active virtual skill onto a keybind.#l\r\n#L2#What are virtual skills and how do I get them?#l\r\n#L4#I want to swap SP between my skills and virtual skills, using SP resets.#l");
+            cm.sendSimple("Hey. So you wanna use #dvirtual skills#k, huh?\r\n\r\n#L0#I'd like to spend/remove skill points in virtual skills.#l\r\n#L1#I'd like to view the virtual skills I have.#l\r\n#L3#I need to put an active virtual skill onto a keybind.#l\r\n#L2#What are virtual skills and how do I get them?#l\r\n#L4#I want to swap SP between my skills and virtual skills, using SP resets.#l\r\n#L5#I want to spend SP on my non-virtual skills, but I can't!#l");
             break;
         case 1:
             branch = selection;
@@ -219,7 +207,7 @@ function action(mode, type, selection) {
                                    s[2] +
                                    "#k";
                         })
-                        .join("");
+                        .join("\r\n");
                         cm.sendSimple("Alright, then. Pick yer poison:\r\n" + skillString);
                     } else {
                         cm.sendPrev("Sorry, it doesn't look like your class is eligible for any virtual skills, or you're missing the pre-requisites for all of them.");
@@ -230,7 +218,7 @@ function action(mode, type, selection) {
                         skillString = candidates.map(function(s) {
                             return "\r\n#s" +
                                    s[0] +
-                                   "#\r\n\r\n#e#q" +
+                                   "#\r\n#e#q" +
                                    s[0] +
                                    "##n\r\n#bCurrent level: " +
                                    p.getSkillLevel(s[0]) +
@@ -240,20 +228,22 @@ function action(mode, type, selection) {
                                    s[2] +
                                    "#k";
                         })
-                        .join("");
+                        .join("\r\n");
                         cm.sendPrev(skillString);
                     } else {
                         cm.sendPrev("Sorry, it doesn't look like your class is eligible for any virtual skills.");
                     }
                     break;
                 case 2:
-                    var classList = Object.keys(skills)
-                                          .map(function(jobId) {
-                                              return "\r\n\t  #e" +
-                                                     MapleJob.getJobName(jobId) +
-                                                     "#n";
-                                          })
-                                          .join("");
+                    var classList =
+                        Object
+                            .keys(skills)
+                            .map(function(jobId) {
+                                return "\r\n\t  #e" +
+                                       MapleJob.getJobName(jobId) +
+                                       "#n";
+                            })
+                            .join("");
                     cm.sendPrev("#dVirtual skills#k are skills that people can put their #bskill points#k\r\ninto without having to be part of the class/job associated with that skill.\r\n\r\nThe only way to put points into (or take points out of) virtual skills is to #etalk to me, #rFiona#k#n.\r\n\r\nThe only classes that can obtain virtual skills (as of now) are:\r\n" + classList);
                     break;
                 case 3:
@@ -266,7 +256,7 @@ function action(mode, type, selection) {
                                    s[0] +
                                    "##s" +
                                    s[0] +
-                                   "#\r\n\r\n#e#q" +
+                                   "#\r\n#e#q" +
                                    s[0] +
                                    "##n\r\n#bCurrent level: " +
                                    p.getSkillLevel(s[0]) +
@@ -276,7 +266,7 @@ function action(mode, type, selection) {
                                    s[2] +
                                    "#k#l";
                         })
-                        .join("");
+                        .join("\r\n");
                         cm.sendSimple(skillString);
                     } else {
                         cm.sendPrev("Sorry, it doesn't look like you have any #eactive#n virtual skills.");
@@ -284,6 +274,45 @@ function action(mode, type, selection) {
                     break;
                 case 4:
                     cm.sendSimple("#L0#I want to reset skill points out of a non-virtual skill into a virtual one.#l\r\n#L1#I want to reset skill points out of a virtual skill into a non-virtual one.#l");
+                    break;
+                case 5:
+                    var canAccessAnyVirtualSkills =
+                        Object
+                            .keys(skills)
+                            .some(function(jobId) {
+                                return p.getJob().isA(MapleJob.getById(jobId));
+                            });
+                    if (!canAccessAnyVirtualSkills) {
+                        cm.sendOk("It doesn't look like you even have any virtual skills...");
+                        cm.dispose();
+                        return;
+                    }
+                    var nonvirtualSkillStr =
+                        jsArray(MapleCharacter.SKILL_IDS)
+                            .filter(function(sid) {
+                                return isNonvirtualSpTarget(p, sid) &&
+                                       p.canLearnSkill(sid);
+                            })
+                            .map(function(sid) {
+                                var s = SkillFactory.getSkill(sid);
+                                var maxLevel =
+                                    s.isFourthJob() ?
+                                        Math.min(p.getMasterLevel(s), s.getMaxLevel()) :
+                                        s.getMaxLevel();
+                                return "\r\n#L" +
+                                       sid +
+                                       "##s" +
+                                       sid +
+                                       "#\r\n#e#q" +
+                                       sid +
+                                       "##n\r\n#bCurrent level: " +
+                                       p.getSkillLevel(s) +
+                                       "#k\r\n#dMax level: " +
+                                       maxLevel +
+                                       "#k#l";
+                            })
+                            .join("\r\n");
+                    cm.sendSimple("Choose the skill that you want to spend SP on:\r\n" + nonvirtualSkillStr);
                     break;
                 default:
                     cm.dispose();
@@ -327,6 +356,20 @@ function action(mode, type, selection) {
                             })
                             .join("\r\n");
                     cm.sendSimple("Which job would you like to reset skills in?:\r\n\r\n" + selectStr);
+                    break;
+                case 5:
+                    if (!isNonvirtualSpTarget(p, selection) || !p.canLearnSkill(selection)) {
+                        cm.sendOk("It doesn't look like you can put points into that skill.");
+                        cm.dispose();
+                        return;
+                    }
+                    skill = selection;
+                    s = SkillFactory.getSkill(skill);
+                    maxLevel =
+                        s.isFourthJob() ?
+                            Math.min(p.getMasterLevel(s), s.getMaxLevel()) :
+                            s.getMaxLevel();
+                    cm.sendGetNumber("How many SP would you like to put into #d" + SkillFactory.getSkillName(skill) + "#k?\r\n", 1, 1, Math.min(maxLevel - p.getSkillLevel(s), p.getRemainingSp()));
                     break;
                 default:
                     cm.dispose();
@@ -421,6 +464,32 @@ function action(mode, type, selection) {
                          });
                     cm.sendSimple("Pick a skill to remove levels from:\r\n" + skillSelectStr);
                     break;
+                case 5:
+                    s = SkillFactory.getSkill(skill);
+                    if (!isNonvirtualSpTarget(p, skill) || !p.canLearnSkill(s)) {
+                        cm.sendOk("It doesn't look like you can put points into that skill.");
+                        cm.dispose();
+                        return;
+                    }
+                    maxLevel =
+                        s.isFourthJob() ?
+                            Math.min(p.getMasterLevel(s), s.getMaxLevel()) :
+                            s.getMaxLevel();
+                    if (p.getSkillLevel(s) + selection > maxLevel || selection > p.getRemainingSp) {
+                        cm.sendOk("You can't put that many points in #s" + skill + "#.");
+                        cm.dispose();
+                        return;
+                    }
+                    p.setRemainingSp(p.getRemainingSp() - selection);
+                    p.updateSingleStat(MapleStat.AVAILABLESP, p.getRemainingSp());
+                    p.changeSkillLevel(
+                        s,
+                        p.getSkillLevel(s) + selection,
+                        p.getMasterLevel(s)
+                    );
+                    cm.sendOk("Looks like you're all set, kiddo.\r\n\r\n#s" + skill + "#\r\n\r\n#bLevel: " + p.getSkillLevel(s) + "#k");
+                    cm.dispose();
+                    return;
                 default:
                     cm.dispose();
                     return;
@@ -535,8 +604,9 @@ function action(mode, type, selection) {
                                     var skill = SkillFactory.getSkill(id);
                                     return id >= 1000000 &&
                                            skillJob.getAdvancement() === skillResetJob &&
-                                           player.getSkillLevel(skill) + selection <= skill.getMaxLevel() &&
-                                           p.getJob().isA(skillJob);
+                                           p.getSkillLevel(skill) + selection <= skill.getMaxLevel() &&
+                                           p.getJob().isA(skillJob) &&
+                                           p.canLearnSkill(skill);
                                 })
                                 .map(function(id) {
                                     return "#L" +
@@ -600,6 +670,8 @@ function action(mode, type, selection) {
                             errorMsg = "Hmmm... it looks like the skill you're trying to add levels to is virtual.";
                         } else if (p.getSkillLevel(selection) + transferSp > SkillFactory.getSkill(selection).getMaxLevel()) {
                             errorMsg = "Uh oh. The number of SP you're trying to put into that skill would bring it above maximum level.";
+                        } else if (!p.canLearnSkill(selection)) {
+                            errorMsg = "Hmmm... it doesn't look like you can put points into that skill yet.";
                         }
                     }
                     if (errorMsg) {

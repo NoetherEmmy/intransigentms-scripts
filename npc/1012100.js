@@ -91,8 +91,10 @@ function action(mode, type, selection) {
         if (cm.getJob().equals(MapleJob.BEGINNER)) {
             cm.changeJob(MapleJob.BOWMAN);
         }
-        cm.gainItem(1452002, 1);
-        cm.gainItem(1462047, 1);
+        cm.gainItem(1452002);
+        cm.gainItem(1462047);
+        cm.gainItem(1332070);
+        cm.gainItem(1432000);
         cm.gainItem(2060003, 3000);
         cm.gainItem(2061003, 3000);
         cm.sendOk("So be it! Now go, and go with pride.");

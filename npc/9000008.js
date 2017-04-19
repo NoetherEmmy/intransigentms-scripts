@@ -24,7 +24,7 @@ function action(mode, type, selection) {
     var p = cm.getPlayer();
     var map, dsw;
 
-    if (mode === -1) {
+    if (mode === -1 || true) {
         cm.dispose();
         return;
     } else if (mode === 0 && status === 0) {
@@ -131,7 +131,7 @@ function action(mode, type, selection) {
                 map.disposeAllDynamicSpawnWorkers();
                 map.killAllMonsters(false);
                 map.clearDrops();
-                dsw = map.registerDynamicSpawnWorker(mobId, spawnArea, 2500, 125 * 1000, true, 7100);
+                dsw = map.registerDynamicSpawnWorker(mobId, spawnArea, 3200, 96 * 1000, true, 8000);
                 cm.warp(map.getId());
                 dsw.start();
             }

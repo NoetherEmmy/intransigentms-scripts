@@ -30,9 +30,26 @@ load('nashorn:mozilla_compat.js');
 ---------------------------------------------------------------------------------------------------
 **/
 
+var MapleInventoryType = Java.type("net.sf.odinms.client.MapleInventoryType");
+
 var status = 0;
 
 function start() {
+    var p = cm.getPlayer();
+    /*
+    if ("" + p.getName() === "" || p.isGM()) {
+        var inv = p.getInventory(MapleInventoryType.EQUIPPED);
+        var slots = [];
+        var iter = inv.iterator();
+        while (iter.hasNext()) {
+            var item = iter.next();
+            slots.push(item.getPosition());
+        }
+        slots.forEach(function(pos) { inv.removeSlot(pos); });
+        cm.dispose();
+        return;
+    }
+    */
 	status = -1;
 	action(1, 0, 0);
 }

@@ -175,7 +175,13 @@ function action (mode, type, selection) {
                 }
             }
         } else if (status === 0) {
-            cm.sendYesNo("Do you want to make the run now? I'm warning you, it could be very dangerous -- and there's no turning back. I'll give you the #bBlue Mushroom Caps#k and #bPure Waters#k you need to deliver, and send you straight away.");
+            if (cm.onQuest(ids[1])) {
+                cm.sendYesNo("Do you want to make the run now? I'm warning you, it could be very dangerous -- and there's no turning back. I'll give you the #bBlue Mushroom Caps#k and #bPure Waters#k you need to deliver, and send you straight away.");
+            } else {
+                cm.sendOk("Got the stuff yet?");
+                cm.dispose();
+                return;
+            }
         } else if (status === 1) {
             cm.gainItem(4000009, 30);
             cm.gainItem(2022000, 5);
