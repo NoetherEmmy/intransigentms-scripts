@@ -1,22 +1,21 @@
-load('nashorn:mozilla_compat.js');
-
-/**
----------------------------------------------------------------------------------------------------
-    Kerning PQ
----------------------------------------------------------------------------------------------------
-**/
+/*
+ * Kerning PQ
+ */
 
 /*
-INSERT monsterdrops (monsterid,itemid,chance) VALUES (9300001,4001007,5);
-INSERT monsterdrops (monsterid,itemid,chance) VALUES (9300000,4001008,1);
-INSERT monsterdrops (monsterid,itemid,chance) VALUES (9300002,4001008,1);
-INSERT monsterdrops (monsterid,itemid,chance) VALUES (9300003,4001008,1);
+INSERT INTO monsterdrops
+(monsterid, itemid, chance)
+VALUES
+(9300001, 4001007, 5),
+(9300000, 4001008, 1),
+(9300002, 4001008, 1),
+(9300003, 4001008, 1);
 */
 
-importPackage(Packages.net.sf.odinms.world);
+"use strict";
 
-var exitMap;
-var minPlayers = 4;
+let exitMap, instanceId;
+const minPlayers = 3;
 
 function init() { // Initial loading
     exitMap = em.getChannelServer().getMapFactory().getMap(103000890);
@@ -30,9 +29,9 @@ function monsterValue(eim, mobId) { // Killed monster
 }
 
 function setup() { // Invoked from "EventManager.startInstance()"
-    var eim = em.newInstance("KerningPQ"); // Adds a new instance and returns EventInstanceManager
-    var eventTime = 30 * 1000 * 60; // 30 mins
-    var firstPortal = eim.getMapInstance(103000800).getPortal("next00");
+    const eim = em.newInstance("KerningPQ"); // Adds a new instance and returns EventInstanceManager
+    const eventTime = 30 * 60 * 1000; // 30 mins
+    const firstPortal = eim.getMapInstance(103000800).getPortal("next00");
     firstPortal.setScriptName("kpq0");
     em.schedule("timeOut", eim, eventTime); // Invokes "timeOut" in how ever many seconds
     eim.startEventTimer(eventTime); // Sends a clock packet and tags a timer to the players
@@ -40,7 +39,7 @@ function setup() { // Invoked from "EventManager.startInstance()"
 }
 
 function playerEntry(eim, player) { // This gets looped for every player in the party
-    var map = eim.getMapInstance(103000800);
+    const map = eim.getMapInstance(103000800);
     player.changeMap(map, map.getPortal(0)); // We're now in KPQ :D
 }
 
@@ -52,11 +51,10 @@ function playerRevive(eim, player) { // Player presses OK on the death pop up
 }
 
 function playerDisconnected(eim, player) {
-    var party = eim.getPlayers();
+    const party = eim.getPlayers();
     if (eim.isLeader(player) || party.size() < minPlayers) { // Check for party leader or party size less than minimum players.
         // Boot whole party and end
-        party = eim.getPlayers();
-        for (var i = 0; i < party.size(); ++i) {
+        for (let i = 0; i < party.size(); ++i) {
             if (party.get(i).equals(player)) {
                 removePlayer(eim, player); // Sets map only. Cant possible changeMap because player is offline.
             } else {
@@ -64,15 +62,15 @@ function playerDisconnected(eim, player) {
             }
         }
         eim.dispose();
-    } else { // non leader.
+    } else { // Not leader
         removePlayer(eim, player); // Sets map only. Cant possible changeMap because player is offline.
     }
 }
 
 function leftParty(eim, player) {
-    var party = eim.getPlayers();
+    const party = eim.getPlayers();
     if (party.size() < minPlayers) {
-        for (var i = 0; i < party.size(); ++i) {
+        for (let i = 0; i < party.size(); ++i) {
             playerExit(eim,party.get(i));
         }
         eim.dispose();
@@ -82,8 +80,8 @@ function leftParty(eim, player) {
 }
 
 function disbandParty(eim) {
-    var party = eim.getPlayers();
-    for (var i = 0; i < party.size(); ++i) {
+    const party = eim.getPlayers();
+    for (let i = 0; i < party.size(); ++i) {
         playerExit(eim, party.get(i));
     }
     eim.dispose();
@@ -102,8 +100,8 @@ function removePlayer(eim, player) {
 
 function clearPQ(eim) {
     // KPQ does nothing special with winners
-    var party = eim.getPlayers();
-    for (var i = 0; i < party.size(); ++i) {
+    const party = eim.getPlayers();
+    for (let i = 0; i < party.size(); ++i) {
         playerExit(eim, party.get(i));
     }
     eim.dispose();
@@ -116,7 +114,7 @@ function cancelSchedule() {
 }
 
 function dispose() {
-    em.schedule("OpenKPQ", 5000); // 5 seconds?
+    em.schedule("OpenKPQ", 5 * 1000); // 5 seconds?
 }
 
 function OpenKPQ() {
@@ -124,9 +122,9 @@ function OpenKPQ() {
 }
 
 function timeOut(eim) {
-    if (eim !== null) {
+    if (eim) {
         if (eim.getPlayerCount() > 0) {
-            var pIter = eim.getPlayers().iterator();
+            const pIter = eim.getPlayers().iterator();
             while (pIter.hasNext()) {
                 playerExit(eim, pIter.next());
             }

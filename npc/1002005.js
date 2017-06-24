@@ -6,6 +6,8 @@
  * Quest ID: 2005
  */
 
+"use strict";
+
 var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
 
 var status;
@@ -60,6 +62,7 @@ function action(mode, type, selection) {
     } else {
         status--;
     }
+
     if (!cm.onQuest(id)) {
         if (status === 0) {
             if (mode === 0) {

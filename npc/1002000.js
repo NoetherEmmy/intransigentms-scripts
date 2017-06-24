@@ -4,25 +4,16 @@
  * Victoria Road | Lith Harbor (104000000)
  */
 
-var status;
-var maps =         [102000000, 101000000, 100000000, 103000000, 120000000];
-var cost =         [1200,      1200,      800,       1000,      1000];
-var costBeginner = [120,       120,       80,        100,       100];
-var selectedMap = -1;
-var sCost;
+"use strict";
+
+let status;
+const maps =         [102000000, 101000000, 100000000, 103000000, 120000000];
+const cost =         [1200,      1200,      800,       1000,      1000];
+const costBeginner = [120,       120,       80,        100,       100];
+let selectedMap = -1;
+let sCost;
 
 function start() {
-    var p = cm.getPlayer();
-    if ("" + p.getName() === "Naella") {
-        var masteries = [[2121002, 30], [2121006, 30]];
-        masteries.forEach(function(m) {
-            if (p.getMasterLevelById(m[0]) >= m[1] - 10) {
-                p.setMasterLevel(m[0], m[1]);
-            }
-        });
-        cm.dispose();
-        return;
-    }
     status = -1;
     action(1, 0, 0);
 }
@@ -36,7 +27,7 @@ function action(mode, type, selection) {
         cm.sendNext("There's a lot to see in this town, too. Let me know if you want to go somewhere else.");
         cm.dispose();
         return;
-    } else if (((status === 1 || status === 2 || status === 26) && mode === 0) || ((status === 6 || status === 9 || status === 12 || status === 15 || status === 18 || status === 21) && mode === 1)) {
+    } else if ((status === 1 || status === 2 || status === 26) && mode === 0 || (status === 6 || status === 9 || status === 12 || status === 15 || status === 18 || status === 21) && mode === 1) {
         cm.dispose();
         return;
     }
@@ -54,15 +45,15 @@ function action(mode, type, selection) {
             cm.sendSimple("There are 7 big towns here in Victoria Island. Which of those do you want to know more of?\r\n#b#L0##m104000000##l\r\n#L1##m102000000##l\r\n#L2##m101000000##l\r\n#L3##m100000000##l\r\n#L4##m103000000##l\r\n#L5##m120000000##l\r\n#L6##m105040300##l");
         } else if (selection === 1) {
             status = 26;
-            var selStr, i;
+            let selStr;
             if (cm.getJob().getId() === 0) {
                 selStr = "There's a special 90% discount for all beginners. Alright, where would you want to go?#b";
-                for (i = 0; i < maps.length; ++i) {
+                for (let i = 0; i < maps.length; ++i) {
                     selStr += "\r\n#L" + i + "##m" + maps[i] + "# (" + costBeginner[i] + " mesos)#l";
                 }
             } else {
                 selStr = "Oh you aren't a beginner, huh? Then I'm afraid I may have to charge you full price. Where would you like to go?#b";
-                for (i = 0; i < maps.length; ++i) {
+                for (let i = 0; i < maps.length; ++i) {
                     selStr += "\r\n#L" + i + "##m" + maps[i] + "# (" + cost[i] + " mesos)#l";
                 }
             }

@@ -1,5 +1,5 @@
 /*
- * Ludi PQ: portal from 4th stage to 5th stage
+ * Ludi PQ: portal from 8th stage to 9th stage
  */
 
 "use strict";
@@ -12,8 +12,8 @@ const passOfDim = 4001022;
 function enter(pi) {
     const ii = MapleItemInformationProvider.getInstance();
     const eim = pi.getPlayer().getEventInstance();
-    const target = eim.getMapInstance(922010500);
-    if (eim.getProperty("4stageclear") !== null) {
+    const target = eim.getMapInstance(922010900);
+    if (eim.getProperty("8stageclear") !== null) {
         const qty = pi.getPlayer().getItemQuantity(passOfDim, false);
         if (qty > 0) {
             MapleInventoryManipulator.removeById(

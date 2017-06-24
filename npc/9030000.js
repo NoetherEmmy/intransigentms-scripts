@@ -3,8 +3,10 @@
  * ID: 9030000
  */
 
-var status;
-var choice;
+"use strict";
+
+let status
+  , choice;
 
 function start() {
     status = -1;
@@ -40,9 +42,9 @@ function action(mode, type, selection) {
     } else {
         if (choice === 0) {
             if (status === 3) {
-                var mesoEarnt = cm.getHiredMerchantMesos();
+                const mesoEarnt = cm.getHiredMerchantMesos();
                 if (mesoEarnt > 0) {
-                    cm.sendYesNo("You have made " + mesoEarnt + " mesos in your store so far. Would you like to withdraw them?");
+                    cm.sendYesNo(`You have made ${mesoEarnt} mesos in your store so far. Would you like to withdraw them?`);
                 } else {
                     cm.sendOk("You have not made any mesos.");
                     cm.dispose();

@@ -5,6 +5,8 @@
  * ID: 9901024
  */
 
+"use strict";
+
 function PlainFile(name, contents, accesslv) {
     this.name = name;
     this.contents = contents;
@@ -22,11 +24,13 @@ function BlockedDir(name) {
 }
 
 String.prototype.hashCode = function() {
-    var hash = 0;
-    if (this.length === 0) return hash;
-    for (i = 0; i < this.length; ++i) {
-        char = this.charCodeAt(i);
-        hash = ((hash << 5) - hash) + char;
+    let hash = 0;
+    if (this.length === 0) {
+        return hash;
+    }
+    for (let i = 0; i < this.length; ++i) {
+        const char = this.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
         hash = hash & hash; // Convert to 32-bit integer
     }
     return hash * 15485863;
@@ -38,24 +42,29 @@ function escapeRegExp(str) {
 
 if (!String.prototype.endsWith) {
     String.prototype.endsWith = function(searchString, position) {
-        var subjectString = this.toString();
-        if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
-          position = subjectString.length;
+        const subjectString = this.toString();
+        if (
+            typeof position !== "number" ||
+            !isFinite(position) ||
+            Math.floor(position) !== position ||
+            position > subjectString.length
+        ) {
+            position = subjectString.length;
         }
         position -= searchString.length;
-        var lastIndex = subjectString.lastIndexOf(searchString, position);
+        const lastIndex = subjectString.lastIndexOf(searchString, position);
         return lastIndex !== -1 && lastIndex === position;
     };
 }
 
-var status;
-var maxDist = 100;
-var terminalStart = "#k#b\t\tmaekra@lilingfm: [";
-var startText = "#ejudging by the hulking metal casing and the screen on top, you judge this to be some kind of computer; and to your surprise, it's powered on already#n\r\n\r\n#eeven more surprising is the fact that the operating system is already booted into a user -- this place really needs to get its security shit straight#n\r\n\r\n#ethe terminal reads:#n\r\n\r\n";
-var terminalPwd, terminalEnd;
+let status;
+const maxDist = 100;
+const terminalStart = "#k#b\t\tmaekra@lilingfm: [";
+const startText = "#ejudging by the hulking metal casing and the screen on top, you judge this to be some kind of computer; and to your surprise, it's powered on already#n\r\n\r\n#eeven more surprising is the fact that the operating system is already booted into a user -- this place really needs to get its security shit straight#n\r\n\r\n#ethe terminal reads:#n\r\n\r\n";
+let terminalPwd, terminalEnd;
 
 function splitPath(path) {
-    var split;
+    let split;
     if (path.indexOf("/") === -1 && path !== "." && path !== ".." && path !== "~") {
         split = terminalPwd.concat([path]);
     } else {
@@ -80,39 +89,15 @@ function splitPath(path) {
     return split;
 }
 
-function findData(s, splitted) {
-    var split;
-    if (splitted) {
-        split = s;
-    } else {
-        split = splitPath(s);
-    }
-    if (split.length < 1) {
-        return undefined;
-    }
-    var data = dirTree[split[0]];
-    for (var i = 1; i < split.length; ++i) {
-        if (data) {
-            data = data[split[i]];
-        } else {
-            return undefined;
-        }
-    }
-    if (!data) {
-        return undefined;
-    }
-    return data;
-}
-
-var commands =
+const commands =
 {
     "bash": new Executable("bash", function() {
         try {
-            var argArray = [].slice.call(arguments);
-            var commandWord = argArray[0];
-            var command = commands[commandWord];
+            const argArray = [].slice.call(arguments);
+            const commandWord = argArray[0];
+            const command = commands[commandWord];
             if (!command) {
-                var possibleExe;
+                let possibleExe;
                 if (commandWord.indexOf("/") === -1) {
                     possibleExe = findData(terminalPwd.concat([commandWord]), true);
                 } else {
@@ -144,16 +129,16 @@ var commands =
         if (!path) {
             return "Error: path must be specified.";
         }
-        var splitted;
+        let splitted;
         if (path.indexOf("/") === -1) {
             splitted = terminalPwd.concat([path]);
         } else {
             splitted = path.split("/");
         }
-        var data = findData(splitted, true);
+        const data = findData(splitted, true);
         if (data instanceof PlainFile || data instanceof Executable) {
-            var dir = findData(splitted.slice(0, -1), true);
-            var fileName = splitted[splitted.length - 1] + ".zip";
+            const dir = findData(splitted.slice(0, -1), true);
+            const fileName = splitted[splitted.length - 1] + ".zip";
             dir[fileName] = new PlainFile(fileName, (data instanceof PlainFile ? data.contents : data.exe).toString().hashCode().toString(16), 0);
             return "New file: " + fileName + " successfully created.";
         } else {
@@ -167,7 +152,7 @@ var commands =
         if (!path) {
             return "Error: path must be specified.";
         }
-        var data = findData(path, false);
+        const data = findData(path, false);
         if (data instanceof BlockedDir) {
             return "You do not have the privileges necessary to access this directory.";
         } else if (data instanceof PlainFile || data instanceof Executable) {
@@ -181,10 +166,10 @@ var commands =
     }, 0),
     "cp": new Executable("cp", function(path1, path2) {
         try {
-            var copied = findData(path1, false);
-            var path2Split = splitPath(path2);
-            var destDir = findData(path2Split.slice(0, -1), true);
-            var destFileName = path2Split[path2Split.length - 1];
+            const copied = findData(path1, false);
+            const path2Split = splitPath(path2);
+            const destDir = findData(path2Split.slice(0, -1), true);
+            const destFileName = path2Split[path2Split.length - 1];
 
             if (copied instanceof PlainFile || copied instanceof Executable) {
                 if (destDir instanceof BlockedDir) {
@@ -194,7 +179,7 @@ var commands =
                 } else if (!destDir) {
                     return "Could not find specified destination path.";
                 } else {
-                    var already = destDir[destFileName];
+                    const already = destDir[destFileName];
                     if (already) {
                         return "There already exists a file with the specified name.";
                     } else {
@@ -210,15 +195,15 @@ var commands =
         }
     }, 1),
     "echo": new Executable("echo", function() {
-        var argArray = [].slice.call(arguments);
+        const argArray = [].slice.call(arguments);
         return argArray.join(" ");
     }, 0),
     "grep": new Executable("grep", function(regex, glob) {
-        var r = new RegExp(".{0,5}" + regex + ".{0,5}", "g");
-        var g = new RegExp(escapeRegExp(glob).replace("*", ".*"), "i");
-        var data = findData(terminalPwd, true);
-        var toSearch = [];
-        for (var f in data) {
+        const r = new RegExp(".{0,5}" + regex + ".{0,5}", "g");
+        const g = new RegExp(escapeRegExp(glob).replace("*", ".*"), "i");
+        const data = findData(terminalPwd, true);
+        const toSearch = [];
+        for (const f in data) {
             if (g.test(f)) {
                 toSearch.push(f);
             }
@@ -226,12 +211,12 @@ var commands =
         if (toSearch.length < 1) {
             return "No file names matched.";
         }
-        var results = [];
+        let results = [];
         toSearch.forEach(function(filename) {
-            var file = data[filename];
+            const file = data[filename];
             if (file) {
-                var matches = [];
-                var match = r.exec(file.contents);
+                let matches = [];
+                let match = r.exec(file.contents);
                 while (match !== null) {
                     matches = matches.concat(match);
                     match = r.exec(file.contents);
@@ -271,14 +256,14 @@ var commands =
                "su: Attempts to log in as the root user.\r\n" +
                "sudo <command>: Executes a command as the root user.";
     }, 0),
-    "kill": new Executable("kill", function(pid) {
+    "kill": new Executable("kill", function() {
         return "Access denied.";
     }, 1),
     "ls": new Executable("ls", function(path) {
-        var dir = path ? findData(path, false) : findData(terminalPwd, true);
-        var out = "";
-        var i = 0;
-        for (var o in dir) {
+        const dir = path ? findData(path, false) : findData(terminalPwd, true);
+        let out = "";
+        let i = 0;
+        for (const o in dir) {
             if (dir[o] instanceof PlainFile || dir[o] instanceof Executable) {
                 out += o + "  ";
             } else {
@@ -298,7 +283,7 @@ var commands =
         return terminalPwd.join("/").replace("//", "/");
     }, 1),
     "cat": new Executable("cat", function(path) {
-        var data = findData(path, false);
+        const data = findData(path, false);
         if (!data) {
             return "Could not find file specified.";
         }
@@ -316,7 +301,7 @@ var commands =
         }
         return "Access denied.";
     }, 1),
-    "rmdir": new Executable("rmdir", function(path) {
+    "rmdir": new Executable("rmdir", function() {
         return "Could not find empty directory at specified path.";
     }, 1),
     "su": new Executable("su", function() {
@@ -327,7 +312,7 @@ var commands =
     }, 1)
 };
 
-var cakes =
+const cakes =
 "Array.prototype.fisherYates = function() {" +
 "\r\n    for (let i = this.length - 1; i > 0; --i) {" +
 "\r\n        const swapIndex = Math.floor(Math.random() * (i + 1));" +
@@ -384,7 +369,7 @@ var cakes =
 "\r\n}());" +
 "\r\n";
 
-var dirTree =
+const dirTree =
 {
     "/": {
         "bin": commands,
@@ -497,6 +482,30 @@ var dirTree =
     }
 };
 
+function findData(s, splitted) {
+    let split;
+    if (splitted) {
+        split = s;
+    } else {
+        split = splitPath(s);
+    }
+    if (split.length < 1) {
+        return undefined;
+    }
+    let data = dirTree[split[0]];
+    for (let i = 1; i < split.length; ++i) {
+        if (data) {
+            data = data[split[i]];
+        } else {
+            return undefined;
+        }
+    }
+    if (!data) {
+        return undefined;
+    }
+    return data;
+}
+
 function stringifyPwd(pwd) {
     return pwd.join("/")
               .replace("//", "/")
@@ -511,12 +520,20 @@ function start() {
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var pq = p.getPartyQuest();
-    var mi = p.getMap().getPartyQuestInstance();
-    var npc = p.getMap().getNPCById(cm.getNpc());
-    var text = cm.getText() ? cm.getText().substring(0, 84) : undefined;
-    var tokens = text ? text.split(/ (?!\\)/).map(function(t) { return t.replace("\\ ", " "); }) : [""];
+    const p = cm.getPlayer();
+    const pq = p.getPartyQuest();
+    if (!pq) {
+        cm.dispose();
+        return;
+    }
+    const mi = p.getMap().getPartyQuestInstance();
+    if (!mi) {
+        cm.dispose();
+        return;
+    }
+    const npc = p.getMap().getNPCById(cm.getNpc());
+    const text = cm.getText() ? cm.getText().substring(0, 84) : undefined;
+    const tokens = text ? text.split(/ (?!\\)/).map(function(t) { return t.replace("\\ ", " "); }) : [""];
 
     if (mode < 1 || p.getPosition().distance(npc.getPosition()) > maxDist) {
         cm.dispose();
@@ -524,11 +541,11 @@ function action(mode, type, selection) {
     }
     status++;
 
-    var command = tokens[0];
-    var out;
+    let command = tokens[0];
+    let out;
     if (command.indexOf("./") === 0) {
         command = command.substring(2);
-        var possibleExe = findData(terminalPwd.concat([command]), true);
+        const possibleExe = findData(terminalPwd.concat([command]), true);
         if (possibleExe instanceof PlainFile && possibleExe.name.endsWith(".sh")) {
             if (possibleExe.contents.indexOf("112.11.0.112") !== -1) {
                 redSwitch();
@@ -543,11 +560,11 @@ function action(mode, type, selection) {
                 out = "Exit code 1.";
             }
         } else if (possibleExe instanceof Executable) {
-            out = possibleExe.exe.apply(this, tokens.slice(1));
+            out = possibleExe.exe.apply(null, tokens.slice(1));
         }
     }
 
-    var exe = commands[command];
+    const exe = commands[command];
     if (!exe) {
         if (command === "exit" || command === "abort" || command === "quit" || command === "logout") {
             cm.dispose();
@@ -559,7 +576,7 @@ function action(mode, type, selection) {
             out = out ? out : "bash: " + command + ": command not found";
         }
     } else {
-        out = out ? out : exe.exe.apply(this, tokens.slice(1));
+        out = out ? out : exe.exe.apply(null, tokens.slice(1));
     }
     if (!out) {
         out = "";
@@ -578,7 +595,7 @@ function isPrime(n) {
     if (n % 2 === 0 || n % 3 === 0) {
         return false;
     }
-    var i = 5;
+    let i = 5;
     while (i * i <= n) {
         if (n % i === 0 || n % (i + 2) === 0) {
             return false;
@@ -589,13 +606,12 @@ function isPrime(n) {
 }
 
 function redSwitch() {
-    var p = cm.getPlayer();
-    var mi = p.getMap().getPartyQuestInstance();
-    var obsCount = mi.obstacleCount();
-    var obsIdList = mi.registeredObstacleIds();
-    var i;
+    const p = cm.getPlayer();
+    const mi = p.getMap().getPartyQuestInstance();
+    const obsCount = mi.obstacleCount();
+    const obsIdList = mi.registeredObstacleIds();
 
-    for (i = 0; i < obsCount; ++i) {
+    for (let i = 0; i < obsCount; ++i) {
         if (!isPrime(i)) {
             mi.toggleObstacle(obsIdList.get(i));
         }
@@ -603,13 +619,12 @@ function redSwitch() {
 }
 
 function blueSwitch() {
-    var p = cm.getPlayer();
-    var mi = p.getMap().getPartyQuestInstance();
-    var obsCount = mi.obstacleCount();
-    var obsIdList = mi.registeredObstacleIds();
-    var i;
+    const p = cm.getPlayer();
+    const mi = p.getMap().getPartyQuestInstance();
+    const obsCount = mi.obstacleCount();
+    const obsIdList = mi.registeredObstacleIds();
 
-    for (i = 0; i < obsCount; ++i) {
+    for (let i = 0; i < obsCount; ++i) {
         if (i % 3 < 2) {
             mi.toggleObstacle(obsIdList.get(i));
         }
@@ -617,13 +632,12 @@ function blueSwitch() {
 }
 
 function yellowSwitch() {
-    var p = cm.getPlayer();
-    var mi = p.getMap().getPartyQuestInstance();
-    var obsCount = mi.obstacleCount();
-    var obsIdList = mi.registeredObstacleIds();
-    var i;
+    const p = cm.getPlayer();
+    const mi = p.getMap().getPartyQuestInstance();
+    const obsCount = mi.obstacleCount();
+    const obsIdList = mi.registeredObstacleIds();
 
-    for (i = 0; i < obsCount; ++i) {
+    for (let i = 0; i < obsCount; ++i) {
         if (isPrime(i) || i % 5 === 0) {
             mi.toggleObstacle(obsIdList.get(i));
         }

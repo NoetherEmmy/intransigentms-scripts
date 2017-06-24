@@ -30,7 +30,7 @@ If `step` is negative or `end` is less than `start` (or both), the resulting ran
 
 ```haskell
 chooseRandom :: Array<T> -> T
-chooseRandom :: Object -> Array(String, ?)
+chooseRandom :: Object -> Array(String, T)
 chooseRandom :: java.util.Collection<T> -> T
 chooseRandom :: java.util.Map<K, V> -> Array(K, V)
 chooseRandom :: T[] -> T
@@ -45,3 +45,9 @@ chooseRandom :: boolean[] -> Boolean
 ```
 
 Chooses a random element of the provided argument, and returns that element. Like in `jsArray`, `java.util.Map`s are treated as a collection of entries, and when an entry is chosen, it is returned as a JavaScript 2-tuple (`Array` of length 2). Same goes for `Object`s.
+
+```haskell
+Array.prototype.fisherYates :: () -> Array<T>
+```
+
+Shuffles the array *in place* using the Fisher-Yates algorithm, and then returns a reference to the array itself.

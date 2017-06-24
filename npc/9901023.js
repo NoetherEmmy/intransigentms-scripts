@@ -5,32 +5,35 @@
  * ID: 9901023
  */
 
-var ExpTable                     = Java.type("net.sf.odinms.client.ExpTable");
-var JavaMath                     = Java.type("java.lang.Math");
-var MapleBuffStat                = Java.type("net.sf.odinms.client.MapleBuffStat");
-var MapleCharacter               = Java.type("net.sf.odinms.client.MapleCharacter");
-var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
-var TimerManager                 = Java.type("net.sf.odinms.server.TimerManager");
+"use strict";
 
-var status;
-var ballroomMap = 5009;
-var backestWayMap = 5012;
-var onyxApple = 2022179;
-var recipeCollection = 4032064;
-var str = 0,
+const ExpTable                     = Java.type("net.sf.odinms.client.ExpTable");
+const MapleBuffStat                = Java.type("net.sf.odinms.client.MapleBuffStat");
+const MapleCharacter               = Java.type("net.sf.odinms.client.MapleCharacter");
+const MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
+const TimerManager                 = Java.type("net.sf.odinms.server.TimerManager");
+
+let status;
+const ballroomMap = 5009;
+const backestWayMap = 5012;
+const onyxApple = 2022179;
+const recipeCollection = 4032064;
+let str = 0,
     dex = 0,
     int = 0,
     luk = 0;
-var choices, finalChoices, ii, tMan;
+const ii = MapleItemInformationProvider.getInstance();
+const tMan = TimerManager.getInstance();
+let choices, finalChoices;
 
-var prizesAll =
+const prizesAll =
 [
     [[2022121, 1],   [2022273, 1]], [[2049100, 3]],  [[2049004, 2]],
     [[2340000, 2]], [[5220000, 4]], [[4001126, 14]], [[5041000, 8]],
     [[0,       1]]
 ];
 
-var prizesLow =
+const prizesLow =
 [
     [[2002029, 2]], [[2022277, 2]], [[1082222, 1]], [[1082230, 1]],
     [[1082232, 1]], [[1122010, 1]], [[2041212, 1]], [[1012070, 1]],
@@ -40,7 +43,7 @@ var prizesLow =
     [[1072428, 1]], [[1072238, 1]]
 ];
 
-var prizesMid =
+const prizesMid =
 [
     [[2022277, 3]], [[1102057, 1]], [[1082222, 1]], [[1082223, 1]],
     [[1122014, 1]], [[1122010, 1]], [[2041212, 1]], [[1012070, 1]],
@@ -49,36 +52,25 @@ var prizesMid =
     [[1072344, 1]], [[1072427, 1]], [[1072428, 1]], [[1072239, 1]]
 ];
 
-var prizesHigh =
+const prizesHigh =
 [
     [[2340000, 1]], [[1102194, 1]], [[2022282, 1]]
 ];
 
-var multiPrizes =
+const multiPrizes =
 [
     [[1012058, 1], [1012059, 1], [1012060, 1], [1012061, 1]]
 ];
 
-Array.prototype.fisherYates = function() {
-    for (var i = this.length - 1; i > 0; --i) {
-        var swapIndex = Math.floor(JavaMath.random() * (i + 1));
-        var temp = this[swapIndex];
-        this[swapIndex] = this[i];
-        this[i] = temp;
-    }
-};
-
 function start() {
-    ii = MapleItemInformationProvider.getInstance();
-    tMan = TimerManager.getInstance();
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var pq = p.getPartyQuest();
-    var mi = p.getMap().getPartyQuestInstance();
+    const p = cm.getPlayer();
+    const pq = p.getPartyQuest();
+    const mi = p.getMap().getPartyQuestInstance();
 
     if (p.getMapId() === ballroomMap) {
         status++;
@@ -128,8 +120,8 @@ function action(mode, type, selection) {
                     }
                     break;
                 case 3:
-                    var pointMulti = Math.max(1.1 + ((pq.getPoints() - 1200) / 1600), 0.4);
-                    var rankColor;
+                    const pointMulti = Math.max(1.1 + (pq.getPoints() - 1200) / 1600, 0.4);
+                    let rankColor;
                     if (pq.getPoints() >= 2000) {
                         rankColor = "#g";
                     } else if (pq.getPoints() >= 900) {
@@ -137,12 +129,12 @@ function action(mode, type, selection) {
                     } else {
                         rankColor = "#r";
                     }
-                    var exptl = ExpTable.getExpNeededForLevel(p.getLevel());
-                    var multi = 6 / Math.log(p.getLevel());
-                    var exp = Math.min(Math.floor(exptl * multi * pointMulti), 2147483647);
-                    var meso = Math.floor(pointMulti * 3000 * (Math.pow(p.getLevel(), 1.5) + p.getLevel()));
+                    const exptl = ExpTable.getExpNeededForLevel(p.getLevel());
+                    const multi = 6 / Math.log(p.getLevel());
+                    const exp = Math.min(Math.floor(exptl * multi * pointMulti), 2147483647);
+                    const meso = Math.floor(pointMulti * 3000 * (Math.pow(p.getLevel(), 1.5) + p.getLevel()));
 
-                    var levelPrizes;
+                    let levelPrizes;
                     if (p.getLevel() <= 70) {
                         levelPrizes = prizesLow;
                     } else if (p.getLevel() <= 120) {
@@ -150,12 +142,12 @@ function action(mode, type, selection) {
                     } else {
                         levelPrizes = prizesHigh;
                     }
-                    var prize1 = prizesAll[Math.floor(JavaMath.random() * prizesAll.length)];
-                    var prize2 = levelPrizes[Math.floor(JavaMath.random() * levelPrizes.length)];
-                    var prizes = [];
+                    const prize1 = chooseRandom(prizesAll);
+                    const prize2 = chooseRandom(levelPrizes);
+                    let prizes = [];
                     prizes = prizes.concat(prize1.map(multiPrizeConvert));
                     prizes = prizes.concat(prize2.map(multiPrizeConvert));
-                    var prizeString = prizes.reduce(function(s, prize) {
+                    const prizeString = prizes.reduce(function(s, prize) {
                         return s + "\r\n#i" + prize[0] + "#  (" + prize[1] + ")";
                     }, "");
 
@@ -170,20 +162,20 @@ function action(mode, type, selection) {
 
                     cm.sendNext(
                         "#eYour party's final accumulated points: " +
-                        rankColor +
-                        MapleCharacter.makeNumberReadable(pq.getPoints()) +
-                        "#k#n\r\n\r\n" +
-                        "#fUI/UIWindow.img/QuestIcon/4/0#\r\n\r\n" +
-                        "#fUI/UIWindow.img/QuestIcon/8/0#  " +
-                        MapleCharacter.makeNumberReadable(exp) +
-                        "\r\n" +
-                        "#fUI/UIWindow.img/QuestIcon/7/0#  " +
-                        MapleCharacter.makeNumberReadable(meso) +
-                        "\r\n\r\n" +
-                        "#i" +
-                        recipeCollection +
-                        "#  (1)" +
-                        prizeString
+                            rankColor +
+                            MapleCharacter.makeNumberReadable(pq.getPoints()) +
+                            "#k#n\r\n\r\n" +
+                            "#fUI/UIWindow.img/QuestIcon/4/0#\r\n\r\n" +
+                            "#fUI/UIWindow.img/QuestIcon/8/0#  " +
+                            MapleCharacter.makeNumberReadable(exp) +
+                            "\r\n" +
+                            "#fUI/UIWindow.img/QuestIcon/7/0#  " +
+                            MapleCharacter.makeNumberReadable(meso) +
+                            "\r\n\r\n" +
+                            "#i" +
+                            recipeCollection +
+                            "#  (1)" +
+                            prizeString
                     );
                     cm.dispose();
                     return;
@@ -299,8 +291,8 @@ function action(mode, type, selection) {
                     cm.sendSimple("Ohohohohoho. Fine. Fine.\r\n\r\nI know perfectly well #rwhere this is going#k...\r\n\r\n#ereaches for something on the inside of his coat#n\r\n\r\n" + choiceString(finalChoices));
                     break;
                 case 3:
-                    var finalChoice = finalChoices[selection];
-                    var stat, statType;
+                    const finalChoice = finalChoices[selection];
+                    let stat, statType;
                     switch (finalChoice) {
                         case "(reach for another item of The Chef's coat in hopes that you can disrupt or distract him)":
                             stat = p.getTotalLuk();
@@ -322,14 +314,14 @@ function action(mode, type, selection) {
                             cm.dispose();
                             return;
                     }
-                    var apPerLv = 5;
-                    var margin = Math.floor(p.getLevel() - 20 / 2);
-                    var totalRoll = stat + JavaMath.random() * margin;
-                    var upperThresh = p.getLevel() * apPerLv + margin;
-                    var midThresh = p.getLevel() * apPerLv - margin;
+                    const apPerLv = 5;
+                    const margin = Math.floor(p.getLevel() - 20 / 2);
+                    const totalRoll = stat + Math.random() * margin;
+                    const upperThresh = p.getLevel() * apPerLv + margin;
+                    const midThresh = p.getLevel() * apPerLv - margin;
 
                     if (totalRoll >= upperThresh) {
-                        var buff = getBuff();
+                        const buff = getBuff();
                         pq.getPlayers().forEach(function(player) {
                             buff.applyTo(player);
                         });
@@ -424,7 +416,7 @@ function action(mode, type, selection) {
 }
 
 function choiceString(choices) {
-    var selections = choices.map(function(s, i) {
+    const selections = choices.map(function(s, i) {
         return "#L" + i + "#" + s + "#l";
     });
     selections.fisherYates();
@@ -432,15 +424,15 @@ function choiceString(choices) {
 }
 
 function getBuff() {
-    var mse = ii.getItemEffect(onyxApple);
+    const mse = ii.getItemEffect(onyxApple);
     mse.removeStatup(MapleBuffStat.WDEF);
     return mse;
 }
 
 function multiPrizeConvert(prize) {
     if (prize[0] < multiPrizes.length) {
-        var multiPrize = multiPrizes[prize[0]];
-        return multiPrize[Math.floor(JavaMath.random() * multiPrize.length)];
+        const multiPrize = multiPrizes[prize[0]];
+        return multiPrize[Math.floor(Math.random() * multiPrize.length)];
     }
     return prize;
 }

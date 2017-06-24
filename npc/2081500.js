@@ -5,12 +5,14 @@
  * ID: 2081500
  */
 
-var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+"use strict";
 
-var status;
-var ids = [6000];
-var id;
-var skills =
+const MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+
+let status;
+const ids = [6000];
+let id;
+const skills =
 [
     [
         [3121006, 30], [3221005, 30],
@@ -19,9 +21,9 @@ var skills =
         [1320008, 25]
     ]
 ];
-var reward;
-var present = 4031520;
-var questions = {
+let reward;
+const present = 4031520;
+const questions = {
     "#eQ#n (the set of all rationals) is #enot#n closed under which one of these operations?:": [
         "exponentiation",
         "division",
@@ -85,7 +87,7 @@ var questions = {
         "6",
         "16"
     ],
-    "This man was a major figure in the creation of the historic anarcho-communist territory known in English as \"The Free Territory\":": [
+    "This man was a major figure in the creation of the historic 'anarcho-communist' territory known in English as \"The Free Territory\":": [
         "Nestor Makhno",
         "Sylvain Marechal",
         "Pyotr Kropotkin",
@@ -93,28 +95,9 @@ var questions = {
         "Carlo Cafiero"
     ]
 };
-var questionkeys = Object.keys(questions);
-var questionorder = [];
-var questionnumber = 0;
-
-function fisherYates(a) {
-    if (!(a instanceof Array)) return null;
-    var i, j, temp;
-    for (i = a.length - 1; i >= 1; --i) {
-        j = Math.floor(Math.random() * (i + 1));
-        temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
-    }
-    return a;
-}
-
-function contains(a, o) {
-    for (var i = 0; i < a.length; ++i) {
-        if (a[i] === o) return true;
-    }
-    return false;
-}
+const questionkeys = Object.keys(questions);
+const questionorder = [];
+let questionnumber = 0;
 
 function start() {
     id = 6000;
@@ -123,8 +106,8 @@ function start() {
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var i, rewards;
+    const p = cm.getPlayer();
+
     if (mode < 0) {
         cm.dispose();
         return;
@@ -193,10 +176,10 @@ function action(mode, type, selection) {
             cm.sendYesNo("#esigh#n\r\n\r\nWell, alright. You're gonna have to take a quiz. Do you think you're ready?");
         } else if (status >= 2) {
             if (questionnumber === 0) {
-                for (i = 0; i < questionkeys.length; ++i) {
+                for (let i = 0; i < questionkeys.length; ++i) {
                     questionorder.push(i);
                 }
-                questionorder = fisherYates(questionorder);
+                questionorder.fisherYates();
             } else if (questionnumber < questionorder.length) {
                 if (selection !== 0) {
                     cm.sendOk("Ah, nope. That's not quite right.");
@@ -216,13 +199,13 @@ function action(mode, type, selection) {
                 }
             }
 
-            var answerlist = [];
-            var answerstring = "";
-            for (i = 0; i < questions[questionkeys[questionorder[questionnumber]]].length; ++i) {
+            const answerlist = [];
+            let answerstring = "";
+            for (let i = 0; i < questions[questionkeys[questionorder[questionnumber]]].length; ++i) {
                 answerlist.push("#L" + i + "#" + questions[questionkeys[questionorder[questionnumber]]][i] + "#l");
             }
-            answerlist = fisherYates(answerlist);
-            for (i = 0; i < answerlist.length; ++i) {
+            answerlist.fisherYates();
+            for (let i = 0; i < answerlist.length; ++i) {
                 answerstring += answerlist[i];
                 answerstring += "\r\n";
             }
@@ -234,14 +217,14 @@ function action(mode, type, selection) {
         if (status === 0) {
             cm.sendSimple(cm.selectQuest(id, "Well what have we here?"));
         } else if (status === 1) {
-            rewards = skills[id - ids[0]];
-            for (i = 0; i < rewards.length; ++i) {
+            const rewards = skills[id - ids[0]];
+            for (let i = 0; i < rewards.length; ++i) {
                 if (Math.floor(rewards[i][0] / 10000) === p.getJob().getId()) {
                     reward = rewards[i];
                     break;
                 }
             }
-            var extra = "";
+            let extra = "";
             if (reward) {
                 if (reward[0] === 2321003) {
                     extra = "#e, #rBahamut#k #b30#k#n";

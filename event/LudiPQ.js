@@ -1,69 +1,55 @@
-load('nashorn:mozilla_compat.js');
-/* 
- * This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc> 
-                       Matthias Butz <matze@odinms.de>
-                       Jan Christian Meyer <vimes@odinms.de>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License version 3
-    as published by the Free Software Foundation. You may not use, modify
-    or distribute this program under any other version of the
-    GNU Affero General Public License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+/*
+ * Ludi PQ
  */
 
 /*
- * @Author Raz
- * 
- * Ludi Maze PQ
- */
- 
-importPackage(Packages.net.sf.odinms.world);
+INSERT INTO monsterdrops
+(monsterid, itemid, chance)
+VALUES
+(9300005, 4001022, 5),
+(9300006, 4001022, 4),
+(9300007, 4001022, 1),
+(9300136, 4001022, 1),
+(9300012, 4001023, 1);
+*/
 
-var exitMap;
+"use strict";
+
+let exitMap;
 
 function init() {
-	exitMap = em.getChannelServer().getMapFactory().getMap(922010000);
-	em.setProperty("LudiPQOpen", "true");
+    exitMap = em.getChannelServer().getMapFactory().getMap(922010000);
+    em.setProperty("LudiPQOpen", "true");
 }
 
 function monsterValue(eim, mobId) {
-	return 1;
+    return 1;
 }
 
 function setup() {
-	var eim = em.newInstance("LudiPQ");
-	var pqTime = 60 * 60000; //60 Minutes
-	eim.startEventTimer(pqTime);
-	var firstPortal = eim.getMapInstance(922010100).getPortal("next00");
+    const eim = em.newInstance("LudiPQ");
+    const pqTime = 60 * 60 * 1000; // 60 minutes
+    eim.startEventTimer(pqTime);
+
+    const firstPortal = eim.getMapInstance(922010100).getPortal("next00");
     firstPortal.setScriptName("lpq1");
     em.schedule("timeOut", eim, pqTime);
 
-	return eim;
+    return eim;
 }
 
 function playerEntry(eim, player) {
-	var map = eim.getMapInstance(922010100);
-	player.changeMap(map, map.getPortal(0));
+    const map = eim.getMapInstance(922010100);
+    player.changeMap(map, map.getPortal(0));
 }
 
 function playerDead(eim, player) {
-
 }
 
 function playerDisconnected(eim, player) {
-    var party = eim.getPlayers();
     if (eim.isLeader(player)) {
-        var party = eim.getPlayers();
-        for (var i = 0; i < party.size(); i++) {
+        const party = eim.getPlayers();
+        for (let i = 0; i < party.size(); ++i) {
             if (party.get(i).equals(player)) {
                 removePlayer(eim, player);
             } else {
@@ -71,97 +57,98 @@ function playerDisconnected(eim, player) {
             }
         }
         eim.dispose();
-    } else { // non leader.
+    } else { // Not leader
         removePlayer(eim, player);
     }
 }
 
 function leftParty(eim, player) {
-	playerExit(eim, player);
+    playerExit(eim, player);
 }
 
 function disbandParty(eim) {
-	//boot whole party and end
-	var party = eim.getPlayers();
-	for (var i = 0; i < party.size(); i++) {
-		playerExit(eim, party.get(i));
-	}
-	eim.dispose();
+    // Boot whole party and end
+    const party = eim.getPlayers();
+    for (let i = 0; i < party.size(); ++i) {
+        playerExit(eim, party.get(i));
+    }
+    eim.dispose();
 }
 
 function playerExit(eim, player) {
-	eim.unregisterPlayer(player);
-	player.changeMap(exitMap, exitMap.getPortal(0));
+    eim.unregisterPlayer(player);
+    player.changeMap(exitMap, exitMap.getPortal(0));
 }
 
 
 function playerFinish(eim, player) {
-	var map = eim.getMapInstance(922011100);
-	player.changeMap(map, map.getPortal(0));
+    const map = eim.getMapInstance(922011100);
+    player.changeMap(map, map.getPortal(0));
 }
 
-//for offline players
+// For offline players
 function removePlayer(eim, player) {
-	eim.unregisterPlayer(player);
-	player.getMap().removePlayer(player);
-	player.setMap(exitMap);
+    eim.unregisterPlayer(player);
+    player.getMap().removePlayer(player);
+    player.setMap(exitMap);
 }
 
 function clearPQ(eim) {
-	var party = eim.getPlayers();
-	for (var i = 0; i < party.size(); i++) {
-		   playerFinish(eim, party.get(i));
-	}
-	eim.dispose();
+    const party = eim.getPlayers();
+    for (let i = 0; i < party.size(); ++i) {
+        playerFinish(eim, party.get(i));
+    }
+    eim.dispose();
 }
 
 function allMonstersDead(eim) {
-        //do nothing; LPQ has nothing to do with monster killing
+    // Do nothing; LPQ has nothing to do with monster killing
 }
 
 function cancelSchedule() {
 }
 
 function timeOut(eim) {
-	if (eim != null) {
-		if (eim.getPlayerCount() > 0) {
-			var pIter = eim.getPlayers().iterator();
-			while (pIter.hasNext()) {
-				playerExit(eim, pIter.next());
-			}
-		}
-		eim.dispose();
-	}
+    if (eim) {
+        if (eim.getPlayerCount() > 0) {
+            const pIter = eim.getPlayers().iterator();
+            while (pIter.hasNext()) {
+                playerExit(eim, pIter.next());
+            }
+        }
+        eim.dispose();
+    }
 }
 
  function playerRevive(eim, player) {
      if (eim.isLeader(player)) { // Check for party leader
-        var party = eim.getPlayers();
-        for (var i = 0; i < party.size(); i++) {
+        const party = eim.getPlayers();
+        for (let i = 0; i < party.size(); ++i) {
             playerExit(eim, party.get(i));
         }
         eim.dispose();
-    } else
+    } else {
         playerExit(eim, player);
+    }
 }
 
 function startBonus(eim) {
-	if (eim != null) {
-		if (eim.getPlayerCount() > 0) {
-			var pIter = eim.getPlayers().iterator();
-			while (pIter.hasNext()) {
-				if (pIter.next().getMap().getId() == 922011000) {
-					playerFinish(eim, pIter.next());
-				}
-			}
-		}
-	}
+    if (eim) {
+        if (eim.getPlayerCount() > 0) {
+            const pIter = eim.getPlayers().iterator();
+            while (pIter.hasNext()) {
+                if (pIter.next().getMap().getId() === 922011000) {
+                    playerFinish(eim, pIter.next());
+                }
+            }
+        }
+    }
 }
 
 function dispose() {
-	em.schedule("LudiPQOpen1", 10000); // 10 seconds. gMS is most likely 10 seconds.
+    em.schedule("LudiPQOpen1", 10 * 1000);
 }
 
 function LudiPQOpen1() {
-	em.setProperty("LudiPQOpen", "true");
+    em.setProperty("LudiPQOpen", "true");
 }

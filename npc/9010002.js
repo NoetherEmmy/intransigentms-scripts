@@ -10,21 +10,23 @@
  * for rewards.
  */
 
-var Collectors                   = Java.type("java.util.stream.Collectors");
-var MapleInventoryType           = Java.type("net.sf.odinms.client.MapleInventoryType");
-var MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
+"use strict";
 
-var status;
-var ii;
-var casheqs;
-var cashpage = 0;
-var cashtype = 0;
-var purchase = 0;
-var search = "";
-var searchpurchase = false;
-var linesperpage = 10;
+const Collectors                   = Java.type("java.util.stream.Collectors");
+const MapleInventoryType           = Java.type("net.sf.odinms.client.MapleInventoryType");
+const MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemInformationProvider");
 
-var casheqtypes = {
+let status;
+const ii = MapleItemInformationProvider.getInstance();
+let casheqs;
+let cashpage = 0;
+let cashtype = 0;
+let purchase = 0;
+let search = "";
+let searchpurchase = false;
+const linesperpage = 10;
+
+const casheqtypes = {
     100: ["Hats", 2900],
     101: ["Face accessories", 2250],
     102: ["Eye accessories", 3100],
@@ -40,11 +42,11 @@ var casheqtypes = {
     170: ["Weapons", 4100],
     180: ["Pet equips", 1900],
 };
-var bannedCash = [
+const bannedCash = [
     1112500,
     1112501
 ];
-var prizes =
+const prizes =
 [
   /* ID       chance quantity */
     [2049100, 0.2,     4], /* Chaos scrolls 60% */
@@ -67,7 +69,7 @@ var prizes =
     [4001126, 0.2,    26], /* Maple leaves */
     [2340000, 0.13025, 2], /* White scrolls */
 ];
-var otherCash =
+const otherCash =
 [
     5021024,
     5170000,
@@ -96,37 +98,35 @@ var otherCash =
     5000041,
     5000047,
 ];
-var otherPrice = 5000;
-var featUnlockables = {
+const otherPrice = 5000;
+const featUnlockables = {
     23: "So, you uh... sell All-Cure Potions by any chance?",
     31: "I want pet food. A lot of pet food.",
     43: "Got any deals on... VIP Teleport Rocks?"
 };
-var unlockableselection;
-var nxratio = 250;
-var gachratio = 4;
-var wsratio = 1;
-var chairratio = 1;
-var appleratio = 3;
-var apratio = 10;
-var chaosratiovp = 2;
-var chaosratiocs = 3;
-var gachratiovp = 8;
-var scrollratio = 3;
-var fornx = false;
-var forgach = false;
-var forws = false;
-var forapple = false;
-var forcash = false;
-var forap = false;
-var forchaos = false;
-var forgachvp = false;
-var forscroll = false;
-var forother = false;
-var forunlockable = false;
+let unlockableselection;
+const nxratio = 250;
+let gachratio = 4;
+const wsratio = 1;
+const chairratio = 1;
+const appleratio = 3;
+const apratio = 10;
+const chaosratiovp = 2;
+const chaosratiocs = 3;
+const gachratiovp = 8;
+let fornx = false;
+let forgach = false;
+let forws = false;
+let forapple = false;
+let forcash = false;
+let forap = false;
+let forchaos = false;
+let forgachvp = false;
+let forother = false;
+let forunlockable = false;
 
 function basicType(id) {
-    var bt = Math.floor(id / 10000);
+    const bt = Math.floor(id / 10000);
     if (bt < 130) {
         return bt;
     } else if (bt >= 180) {
@@ -137,24 +137,23 @@ function basicType(id) {
 }
 
 function getCashList() {
-    var cashlist = "";
-    for (var i = cashpage * 5 * linesperpage; i < casheqs.length && i < (cashpage + 1) * 5 * linesperpage; ++i) {
+    let cashlist = "";
+    for (let i = cashpage * 5 * linesperpage; i < casheqs.length && i < (cashpage + 1) * 5 * linesperpage; ++i) {
         cashlist += "#L" + (i + 3) + "##i" + casheqs[i] + "#" + (i % 5 === 4 ? "\r\n" : "\t");
     }
     return cashlist;
 }
 
 function start() {
-    var p = cm.getPlayer();
-    ii = MapleItemInformationProvider.getInstance();
+    const p = cm.getPlayer();
     gachratio = p.hasFeat(1) ? 3 : 4;
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var i, vp, cashlist, leavestotrade;
+    const p = cm.getPlayer();
+    let vp, cashlist, leavestotrade;
     if (mode === -1) {
         /*
         if (forcash && status !== 1) {
@@ -263,7 +262,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendGetNumber("How many maple leaves would you like to trade in? (This number will be rounded down to the nearest multiple of " + gachratio + ".)", cm.itemQuantity(4001126) - (cm.itemQuantity(4001126) % gachratio), gachratio, cm.itemQuantity(4001126));
+                cm.sendGetNumber(`How many maple leaves would you like to trade in? (This number will be rounded down to the nearest multiple of ${gachratio}.)`, cm.itemQuantity(4001126) - cm.itemQuantity(4001126) % gachratio, gachratio, cm.itemQuantity(4001126));
             }
             forgach = true;
         } else if (selection === 2) {
@@ -272,7 +271,7 @@ function action(mode, type, selection) {
             casheqs = [];
             search = "";
             searchpurchase = false;
-            var typestring = "";
+            let typestring = "";
             for (type in casheqtypes) {
                 typestring += "\r\n#L" + type + "#" + casheqtypes[type][0] + "#l";
             }
@@ -283,11 +282,11 @@ function action(mode, type, selection) {
             return;
         } else if (selection === 4) {
             if (cm.itemQuantity(3992005) > 0) {
-                var prize;
-                var prizequantity = 1;
-                var chance = Math.random();
-                var cumulativechance = 0.0;
-                for (i = 0; i < prizes.length; ++i) {
+                let prize;
+                let prizequantity = 1;
+                const chance = Math.random();
+                let cumulativechance = 0.0;
+                for (let i = 0; i < prizes.length; ++i) {
                     cumulativechance += prizes[i][1];
                     if (cumulativechance > chance) {
                         prize = prizes[i][0];
@@ -296,14 +295,14 @@ function action(mode, type, selection) {
                     }
                 }
                 if (prize === 0) { // NX
-                    var nxamount = Math.floor((Math.random() * 15001) + 9000);
+                    const nxamount = Math.floor(Math.random() * 15001 + 9000);
                     cm.sendOk("Oh my god, thank you so much for the present! Here, have this:\r\n\r\n#e#b" + nxamount + " NX gained.#k#n");
                     cm.modifyNx(nxamount);
                     cm.gainItem(3992005, -1);
                     cm.dispose();
                     return;
                 } else if (prize === 1) { // Maple Leaves
-                    var leafamount = Math.floor((Math.random() * 10) + 20);
+                    const leafamount = Math.floor(Math.random() * 10 + 20);
                     cm.sendOk("Oh my god, thank you so much for the present! Here, have this:\r\n\r\n#i4001126#  x" + leafamount);
                     cm.gainItem(4001126, leafamount);
                     cm.gainItem(3992005, -1);
@@ -338,8 +337,8 @@ function action(mode, type, selection) {
             if (p.getVotePoints() >= chairratio) {
                 vp = p.getVotePoints();
                 p.setVotePoints(vp - chairratio);
-                chairs = ii.getChairIds();
-                var chairid = chairs.get(Math.floor(Math.random() * chairs.size()));
+                const chairs = ii.getChairIds();
+                const chairid = chairs.get(Math.floor(Math.random() * chairs.size()));
                 cm.sendOk("Thanks for the juicy vote points! Here's a chair:\r\n\r\n#i" + chairid + "#");
                 cm.gainItem(chairid, 1);
                 cm.dispose();
@@ -365,7 +364,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                cm.sendGetNumber("How many maple leaves would you like to trade in? (This number will be rounded down to the nearest multiple of " + appleratio + ".)", cm.itemQuantity(4001126) - (cm.itemQuantity(4001126) % appleratio), appleratio, cm.itemQuantity(4001126));
+                cm.sendGetNumber(`How many maple leaves would you like to trade in? (This number will be rounded down to the nearest multiple of ${appleratio}.)`, cm.itemQuantity(4001126) - cm.itemQuantity(4001126) % appleratio, appleratio, cm.itemQuantity(4001126));
             }
             forapple = true;
         } else if (selection === 8) {
@@ -381,7 +380,7 @@ function action(mode, type, selection) {
         } else if (selection === 9) {
             vp = p.getVotePoints();
             if (vp > 1) {
-                cm.sendGetNumber("How many vote points would you like to trade in?\r\n\r\n(" + chaosratiovp + " vote points -> " + chaosratiocs + " Chaos Scrolls)", vp - (vp % 2), 2, vp - (vp % 2));
+                cm.sendGetNumber(`How many vote points would you like to trade in?\r\n\r\n(${chaosratiovp} vote points -> ${chaosratiocs} Chaos Scrolls)`, vp - vp % 2, 2, vp - vp % 2);
                 forchaos = true;
             } else {
                 cm.sendOk("I don't think you have enough vote points (" + chaosratiovp + " vote points : " + chaosratiocs + " Chaos Scrolls).");
@@ -400,7 +399,7 @@ function action(mode, type, selection) {
             }
         } else if (selection === 11) { // Unused
         } else if (selection === 12) {
-            var selectionStr =
+            const selectionStr =
                 Object
                     .keys(featUnlockables)
                     .filter(function(fid) {
@@ -429,12 +428,12 @@ function action(mode, type, selection) {
             }
             cm.gainItem(4001126, -1 * selection);
             cm.modifyNx(selection * nxratio);
-            cm.sendOk("Thank you! You've been awarded with #b" + (selection * nxratio) + "#k NX.");
+            cm.sendOk(`Thank you! You've been awarded with #b${selection * nxratio}#k NX.`);
             cm.dispose();
             return;
         } else if (forgach) {
-            leavestotrade = selection - (selection % gachratio);
-            var ticketplural = "ticket";
+            leavestotrade = selection - selection % gachratio;
+            let ticketplural = "ticket";
             if (Math.floor(leavestotrade / gachratio) > 1) {
                 ticketplural = "tickets";
             }
@@ -459,12 +458,12 @@ function action(mode, type, selection) {
 
             p.setVotePoints(vp - selection);
             cm.gainItem(2340000, selection * wsratio);
-            cm.sendOk("Thanks! I've given you #b" + (selection * wsratio) + "#k White Scroll" + (selection * wsratio > 1 ? "s" : "") + ".");
+            cm.sendOk(`Thanks! I've given you #b${selection * wsratio}#k White Scroll${selection * wsratio > 1 ? "s" : ""}.`);
             cm.dispose();
             return;
         } else if (forapple) {
-            leavestotrade = selection - (selection % appleratio);
-            var appleplural = "Apple";
+            leavestotrade = selection - selection % appleratio;
+            let appleplural = "Apple";
             if (Math.floor(leavestotrade / appleratio) > 1) {
                 appleplural = "Apples";
             }
@@ -497,20 +496,21 @@ function action(mode, type, selection) {
                     p.toggleGenderFilter();
                     cm.sendPrev("The gender filter is now turned " + (p.genderFilter() ? "on" : "off") + ".");
                     break;
-                case 4:
-                    var otherString = "These items cost #d" + otherPrice + " NX#k each. Click an item below to purchase it:\r\n";
-                    for (i = 0; i < otherCash.length; ++i) {
-                        var id = otherCash[i];
+                case 4: {
+                    let otherString = "These items cost #d" + otherPrice + " NX#k each. Click an item below to purchase it:\r\n";
+                    for (let i = 0; i < otherCash.length; ++i) {
+                        const id = otherCash[i];
                         otherString += (i % 4 === 0 ? "\r\n" : "") + "#L" + id + "##i" + id + "##l  ";
                     }
                     cm.sendSimple(otherString);
                     forother = true;
                     break;
-                default:
+                }
+                default: {
                     casheqs = [];
                     cashpage = 0;
                     cashtype = selection;
-                    var casheqlist =
+                    const casheqlist =
                         cashtype === 170 ?
                             ii.cashEquipsByType(130, 170) :
                             cashtype === 180 ?
@@ -527,7 +527,7 @@ function action(mode, type, selection) {
                         casheqlist
                             .stream()
                             .filter(function(id) {
-                                var gender = Math.floor((id % 10000) / 1000);
+                                const gender = Math.floor(id % 10000 / 1000);
                                 return gender > 1 || gender === p.getGender();
                             })
                             .forEach(function(id) { casheqs.push(id); });
@@ -535,6 +535,7 @@ function action(mode, type, selection) {
 
                     cm.sendSimple(casheqtypes[cashtype][0] + " cost #d" + casheqtypes[cashtype][1] + " NX#k each. Click an item below to purchase it [#e#gpage " + (cashpage + 1) + "#k#n]:\r\n\r\n#L0##bNext page ->#k#l\r\n#L1##rPrevious page <-#k#l\r\n#L2#I don't want to purchase any of these at the moment.#l\r\n\r\n" + getCashList());
                     break;
+                }
             }
         } else if (forap) {
             vp = p.getVotePoints();
@@ -546,7 +547,7 @@ function action(mode, type, selection) {
 
             p.setVotePoints(vp - selection);
             cm.gainItem(5050000, selection * apratio);
-            cm.sendOk("Thanks! I've given you #b" + (selection * apratio) + "#k AP Resets.");
+            cm.sendOk(`Thanks! I've given you #b${selection * apratio}#k AP Resets.`);
             cm.dispose();
             return;
         } else if (forchaos) {
@@ -572,12 +573,12 @@ function action(mode, type, selection) {
 
             p.setVotePoints(vp - selection);
             cm.gainItem(5220000, selection * gachratiovp);
-            cm.sendOk("Thanks! I've given you\r\n\r\n#i5220000#   #bx" + (selection * gachratiovp) + "#k.");
+            cm.sendOk(`Thanks! I've given you\r\n\r\n#i5220000#   #bx${selection * gachratiovp}#k.`);
             cm.dispose();
             return;
         } else if (forunlockable) {
             unlockableselection = selection;
-            var inv, slotsLeft, mesoLimit, limit;
+            let inv, slotsLeft, mesoLimit, limit;
             switch (selection) {
                 case 23:
                     inv = p.getInventory(MapleInventoryType.USE);
@@ -624,8 +625,8 @@ function action(mode, type, selection) {
         if (forcash) {
             if (search.length > 0) {
                 switch (search) {
-                    case "list":
-                        var results =
+                    case "list": {
+                        let results =
                             ii.cashEquipSearch(cm.getText())
                                 .stream()
                                 .filter(function(id) {
@@ -636,13 +637,13 @@ function action(mode, type, selection) {
                             results = results
                                         .stream()
                                         .filter(function(id) {
-                                            var gender = Math.floor((id % 10000) / 1000);
+                                            const gender = Math.floor(id % 10000 / 1000);
                                             return gender > 1 || gender === p.getGender();
                                         })
                                         .collect(Collectors.toList());
                         }
-                        var resultstring = "";
-                        for (i = 0; i < results.size() && i < 30; ++i) {
+                        let resultstring = "";
+                        for (let i = 0; i < results.size() && i < 30; ++i) {
                             resultstring += "\r\n#L" + results.get(i) + "##i" + results.get(i) + "#\t#r" + casheqtypes[basicType(results.get(i))][1] + " NX#k#l";
                         }
                         if (resultstring.length > 0) {
@@ -652,9 +653,10 @@ function action(mode, type, selection) {
                             cm.sendPrev("It doesn't look like your search query turned up any matches!");
                         }
                         break;
-                    case "lucky":
-                        var t = cm.getText();
-                        var result = ii.singleCashEquipSearch(t);
+                    }
+                    case "lucky": {
+                        const t = cm.getText();
+                        const result = ii.singleCashEquipSearch(t);
                         if (result !== 0 && bannedCash.indexOf(result) === -1) {
                             cm.sendSimple("Here is the best match for your query. Click the item to purchase it:\r\n\r\n#L0#This is not quite what I had in mind.#l\r\n\r\n#L" + result + "##i" + result + "#\t#r" + casheqtypes[basicType(result)][1] + " NX#k#l");
                             searchpurchase = true;
@@ -662,19 +664,21 @@ function action(mode, type, selection) {
                             cm.sendPrev("It doesn't look like your search query turned up any matches!");
                         }
                         break;
-                    case "id":
+                    }
+                    case "id": {
                         if (ii.cashEquipExists(selection)) {
                             purchase = selection;
                             if (bannedCash.indexOf(purchase) !== -1) {
                                 cm.dispose();
                                 return;
                             }
-                            cm.sendYesNo("Are you sure you'd like to purchase  #i" + selection + "#  for #r" + casheqtypes[basicType(selection)][1] + " NX#k?");
+                            cm.sendYesNo(`Are you sure you'd like to purchase  #i${selection}#  for #r${casheqtypes[basicType(selection)][1]} NX#k?`);
                             searchpurchase = true;
                         } else {
                             cm.sendPrev("It looks like none of my NX equipments have that ID.");
                         }
                         break;
+                    }
                 }
             } else {
                 if (selection < 0) {
@@ -730,7 +734,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             }
-            var mesos;
+            let mesos;
             switch (unlockableselection) {
                 case 23:
                     mesos = selection * 40000;

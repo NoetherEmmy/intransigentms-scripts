@@ -1,26 +1,50 @@
 # Coding guidelines
 
-**All scripts MUST pass [jshint](http://jshint.com/install/) on default settings with zero errors and zero warnings!!! There is a single exception, see below.**
+**All scripts MUST pass [jshint](http://jshint.com/install/) with the following settings with zero errors and zero warnings!!! There is a single exception, see below.**
+
+```json
+{
+    "curly": true,
+    "eqeqeq": true,
+    "esversion": 6,
+    "futurehostile": true,
+    "globals": {
+        "cm": false,
+        "Java": false,
+        "print": false,
+        "mi": false,
+        "pq": false,
+        "map": false,
+        "rm": false,
+        "qm": false,
+        "em": false,
+        "chooseRandom": false,
+        "jsArray": false,
+        "range": false
+    },
+    "latedef": "nofunc",
+    "laxcomma": true,
+    "noarg": true,
+    "nocomma": true,
+    "nonbsp": true,
+    "nonew": true,
+    "singleGroups": true,
+    "strict": "global",
+    "unused": true,
+    "varstmt": true
+}
+```
 
 ## Style
 
 + Do not use tabs (ASCII character 9) in code, ever. Use spaces (ASCII character 32) instead.
 + Use 4 spaces per level of indentation, always.
 + Use indentation appropriately and consistently, as shown throughout the examples here.
-+ All scripts **MUST** pass [jshint](http://jshint.com/install/) on default settings with zero errors and zero warnings, with the following exception:
-    - When concatenating scripts, do so in a minified import-statement-esque way, at the top of the file (but after the initial block comment) like so:
-
-        ```javascript
-        /* jshint ignore: start */
-        // Array.prototype.findIndex polyfill
-        Array.prototype.findIndex||Object.defineProperty(Array.prototype,"findIndex",{value:function(a){if(null==this)throw new TypeError('"this" is null or not defined');var b=Object(this),c=b.length>>>0;if("function"!=typeof a)throw new TypeError("predicate must be a function");for(var d=arguments[1],e=0;e<c;){var f=b[e];if(a.call(d,f,e,b))return e;e++}return-1}});
-        /* jshint ignore: end */
-        ```
-
-    - Note that the concatenated ("imported") script is all in one line; all such "imports" should be run through this tool: [https://jscompress.com/](https://jscompress.com/)
-    - Note also that there is a short description of what is being imported; this is necessary especially given that the script is minified.
-+ Lines should not be longer than 120 characters (ideally no longer than 79). The only exceptions:
-    - Minified scripts put at the top of the file as shown above
++ All scripts **MUST** pass [jshint](http://jshint.com/install/) on the settings above with zero errors and zero warnings, with the following exception:
+    - Top-level declarations (basically just `function` declarations) that are called "into" from outside of the script will end up being marked as "declared but unused" by jshint, which is of course OK since there's just no way for jshint to know that it actually *is* used.
+    - This applies to any parameters of said functions.
+    - This usually happens with scripts that implement interfaces, e.g. the `start` function in NPC scripts.
++ Lines should not be longer than 120 characters (ideally no longer than 79). The only exception:
     - String literals that represent dialogue may be left all as one line, or may optionally be wrapped like so:
 
         ```javascript
@@ -33,7 +57,19 @@
         );
         ```
 
-+ Use semicolons.
+    - or:
+
+        ```javascript
+        cm.sendSimple(`\
+        #eglares more intensely#n\r\n\r\n\
+        \
+        #L0#I said, what the #efuck#n are you looking at? (brandish weapon)#l\r\n\
+        #L1#You in there, Mr. Steward?#l\r\n\
+        #L2#(blow into his face)#l\r\n\
+        #L3#(walk away cautiously)#l`);
+        ```
+
++ Use semicolons. Do not rely on automatic semicolon insertion (ASI).
 + All scripts should consist of two parts, a *head* and a *body*. The body is more variant depending on the type of script, but the head should be formatted something like:
 
     ```javascript
@@ -53,22 +89,25 @@
      * applicable.
      */
 
-    /* jshint ignore: start */
-    // Description of minified script(s), obviously all of this
-    // is only here if there is 1 or more included scripts.
-    minifiednonsense()
-    /* jshint ignore: end */
+    "use strict";
 
-    var status; // Only if it's an NPC
-    var constant =
-    [
-        "This",      "has", "some",
-        "constants", "in",  "it"
-    ];
-    var justAnotherConstant = 5140002;
-    var notAConstantButIsInitialized = [];
-    var theseAre, variables,  thatNeedToPersist,
-        butWill,  beAssigned, later;
+    let status; // Only if it's an NPC
+    const constant =
+        [ "This"
+        , "has"
+        , "some"
+        , "constants"
+        , "in"
+        , "it"
+        ];
+    const justAnotherConstant = 5140002;
+    const notAConstantButIsInitialized = [];
+    let theseAre
+      , variables
+      , thatNeedToPersist
+      , butWill
+      , beAssigned
+      , later;
 
     function shortHelperFunctionsCanGo(here) {
         return foo * here;
@@ -79,31 +118,31 @@
 + Use lowerCamelCase for variable names and function names. Clones or other "temporary" variables can be prefixed or suffixed with a single underscore, like so:
 
     ```javascript
-    var thisIsAnArray = ["Such", 7.3, "disparate", NaN, "types"];
-    var thisIsAnArray_ = thisIsAnArray.concat();
+    const thisIsAnArray = ["Such", 7.3, "disparate", NaN, "types"];
+    const thisIsAnArray_ = thisIsAnArray.concat();
     ```
 
 + Integral values should be written without a decimal point:
 
     ```javascript
     // Bad:
-    var hundred = 100.0;
+    const hundred = 100.0;
 
     // Good:
-    var hundred = 100;
+    const hundred = 100;
     ```
 
 + Keep a single leading zero in the ones' place even if not necessary, but no trailing zeroes:
 
     ```javascript
     // Bad:
-    var half = .5;
+    const half = .5;
 
     // Worse:
-    var half = .50;
+    const half = .50;
 
     // Good:
-    var half = 0.5;
+    const half = 0.5;
     ```
 
 + When writing self-invoking functions, use the following syntax:
@@ -111,6 +150,7 @@
     ```javascript
     (function() {
         print("Hi!");
+        // ...
     })();
     ```
 
@@ -121,7 +161,7 @@
 + Array literals should be arranged like the following when the array is large enough:
 
     ```javascript
-    var someInts =
+    const someInts =
     [
         415, 5,   837, 461, 101, 694, 147, 3,   81,  919,
         555, 319, 79,  597, 66,  461, 267, 567, 6,   191,
@@ -165,47 +205,116 @@
 + When declaring multiple variables, indent after line breaks:
 
     ```javascript
-    var x = 0,
-        y = 0,
-        z = 0;
+    let x = 0
+      , y = 0
+      , z = 0;
     ```
 
-+ Newlines in string literals are done Windows style, viz. `\r\n`
-+ String literals should be denoted using double quotes (`"..."`) unless the literal is exactly 1 character long, in which case single quotes (`'...'`) are appropriate.
++ Newlines in string literals are done Windows/CRLF style, viz. `\r\n`
+    - Because of this, template literal strings should not contain (unescaped) literal newlines:
+
+        ```javascript
+        // Bad:
+        const str = `line ${i}
+        line ${i + 1}`;
+
+        // OK:
+        const str = `line ${i}\r\nline ${i + 1}`;
+
+        // Also OK, but often unnecessary:
+        const str = `\
+        line ${i}\r\n\
+        line ${i + 1}`;
+        ```
+
++ Prefer to use template literals over string concatenation when doing string interpolation, although either is fine.
++ String literals that aren't template literals should be denoted using double quotes (`"..."`) unless the literal is exactly 1 character long, in which case single quotes (`'...'`) are appropriate.
 + Do not make calls to constructors without using the `new` keyword, even if it would not functionally make a difference.
 + When there are multiple `Java.type()` invocations, they should all be lined up near the top of the script and spaced out to be in line with one another:
 
     ```javascript
-    var Element                = Java.type("net.sf.odinms.server.life.Element");
-    var ElementalEffectiveness = Java.type("net.sf.odinms.server.life.ElementalEffectiveness");
-    var MapleInventoryType     = Java.type("net.sf.odinms.client.MapleInventoryType");
-    var MapleLifeFactory       = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
-    var MapleMonsterStats      = Java.type("net.sf.odinms.server.life.MapleMonsterStats");
-    var MapleStat              = Java.type("net.sf.odinms.client.MapleStat");
-    var Point                  = Java.type("java.awt.Point");
-    var PortalScriptManager    = Java.type("net.sf.odinms.scripting.portal.PortalScriptManager");
-    var SkillFactory           = Java.type("net.sf.odinms.client.SkillFactory");
+    const Element                = Java.type("net.sf.odinms.server.life.Element");
+    const ElementalEffectiveness = Java.type("net.sf.odinms.server.life.ElementalEffectiveness");
+    const MapleInventoryType     = Java.type("net.sf.odinms.client.MapleInventoryType");
+    const MapleLifeFactory       = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
+    const MapleMonsterStats      = Java.type("net.sf.odinms.server.life.MapleMonsterStats");
+    const MapleStat              = Java.type("net.sf.odinms.client.MapleStat");
+    const Point                  = Java.type("java.awt.Point");
+    const PortalScriptManager    = Java.type("net.sf.odinms.scripting.portal.PortalScriptManager");
+    const SkillFactory           = Java.type("net.sf.odinms.client.SkillFactory");
     ```
 
-+ Avoid "magic numbers." If there is a number (or string) constant that is used multiple times throughout the code and/or that needs some kind of name or explanation (e.g. an item ID), give it a variable name and put it near the top of the file with the other constants.
++ Avoid "magic numbers". If there is a number (or string) constant that is used multiple times throughout the code and/or that needs some kind of name or explanation (e.g. an item ID), give it a variable name and put it near the top of the file with the other constants.
 
 ## Method
 
++ The first non-comment statement of all scripts should be `"use strict";`.
++ **Do not use** `var`**.**
++ Prefer to use `const` as often as possible, otherwise use `let`.
+    - Remember that `const` only ensures that the variable name is not reassigned. That is, it does **not** guarantee immutability nor that members of that object aren't reassigned, so it is acceptable to do things like:
+
+        ```javascript
+        const arr = [];
+
+        arr.push(3);
+        const three = arr.pop();
+
+        const obj = {};
+
+        obj.x = 4;
+        const four = obj.x;
+        obj.x = 5;
+        const five = obj.x;
+        ```
+
+    - Unnecessary use of `let` can often be avoided using ternary conditionals (`? :`) or self-executing functions:
+
+        ```javascript
+        // Bad:
+        let x;
+        if (y) {
+            x = y + 1;
+        } else {
+            x = 0;
+        }
+
+        // Good:
+        const x = y ? y + 1 : 0;
+
+        // Bad:
+        let x;
+        try {
+            x = foo();
+        } catch (e) {
+            x = bar();
+        }
+
+        // Good:
+        const x = (function() {
+            try {
+                return foo();
+            } catch (e) {
+                return bar();
+            }
+        })();
+        ```
+
++ Do not declare a variable without using `const` or `let`. This implicity creates a global variable. If a global variable is needed, just declare it in the global scope near the top of the script using `const`, or `let` if necessary.
 + When using Java types/classes, import then using the `Java.type` method; do not use the Rhino method:
 
     ```javascript
     // Bad:
-    var Status = Packages.net.sf.odinms.client.MapleQuestStatus.Status;
-    var isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
+    const Status = Packages.net.sf.odinms.client.MapleQuestStatus.Status;
+    const isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
 
     // Even worse:
-    var isComplete =
+    const isComplete =
         cm.getQuestStatus(9999)
           .equals(Packages.net.sf.odinms.client.MapleQuestStatus.Status.COMPLETED);
 
     // Good:
-    var Status = Java.type("net.sf.odinms.client.MapleQuestStatus.Status");
-    var isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
+    const Status = Java.type("net.sf.odinms.client.MapleQuestStatus.Status");
+    const isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
     ```
 
 + Do not `load('nashorn:mozilla_compat.js');`. This means using `Java.type()` as shown above, and not using `for each` loops, as shown below.
@@ -213,33 +322,41 @@
 
     ```javascript
     // Bad:
-    var a = new Array(0, 1, 3, 7);
+    const a = new Array(0, 1, 3, 7);
 
     // Good:
-    var a = [0, 1, 3, 7];
+    const a = [0, 1, 3, 7];
 
     // Bad:
     cm.sendOk("There are currently " + String(parties * partySize) + " people here.");
 
     // Good:
     cm.sendOk("There are currently " + (parties * partySize) + " people here.");
+
+    // Even better:
+    cm.sendOk(`There are currently ${parties * partySize} people here.`);
     ```
 
 + Never make comparisons using `==` or `!=`. Always use `===` or `!==` instead, unless two non-primitive and non-null Java objects are being compared, in which case use `.equals()`.
-+ Do not use `for each` loops. Prefer to use `.forEach()` instead, and failing that, use a C-like for loop:
++ Do not use `for each` loops. Prefer to use `.forEach()` instead. Failing that, use `for ... of ...`, and failing that, use a C-like for loop:
 
     ```javascript
-    // Bad:
+    // Bad!:
     for each (var potato in potatoes) {
         p.dropMessage(potato.name());
     }
 
     // OK:
-    for (var i = 0; i < potatoes.length; ++i) {
+    for (let i = 0; i < potatoes.length; ++i) {
         p.dropMessage(potatoes[i].name());
     }
 
-    // Good:
+    // Better:
+    for (const potato of potatoes) {
+        p.dropMessage(potato.name());
+    }
+
+    // Very nice:
     potatoes.forEach(function(potato) {
         p.dropMessage(potato.name());
     });
@@ -261,7 +378,7 @@
         cm.dispose();
         return;
     }
-    
+
     doLotsOfThings();
     ```
 
@@ -271,7 +388,7 @@
 
     ```javascript
     // Bad:
-    var status = 0;
+    let status = 0;
 
     function start() {
         status = -1;
@@ -279,7 +396,7 @@
     }
 
     // Good:
-    var status;
+    let status;
 
     function start() {
         status = -1;
@@ -287,7 +404,7 @@
     }
 
     // Bad:
-    var pName = "";
+    let pName = "";
     if (p.getLevel() > 60) {
         pName = "Big baddy";
     } else {
@@ -295,23 +412,23 @@
     }
 
     // Good:
-    var pName;
+    let pName;
     if (p.getLevel() > 60) {
         pName = "Big baddy";
     } else {
         pName = "Lil baddy";
     }
+
+    // Best:
+    const pName = p.getLevel() > 60 ? "Big baddy" : "Lil baddy";
     ```
 
-+ Do not declare variables without using `var`. This implicity creates a global variable. If a global variable is needed, declare it in the global scope near the top of the script.
-+ Whereever `console.log();` or Java's `System.out.println();` would be used, use `print();` instead; this is for debugging purposes only.
++ Wherever `console.log();` or Java's `System.out.println();` would be used, use `print();` instead; this is for debugging purposes only.
 + Prefer using `switch` statements over chains of `if`/`else if`/`else`.
-+ When writing NPC scripts, the `action()` function as well as any other functions that need to access the player should start with the statement `var p = cm.getPlayer();` so that `getPlayer()` no longer has to be called again, and the player can simply be referenced as `p` throughout.
++ When writing NPC scripts, the `action()` function as well as any other functions that need to access the player should start with the statement `const p = cm.getPlayer();` so that `getPlayer()` no longer has to be called again, and the player can simply be referenced as `p` throughout.
     - This also applies ot other scripts, if the corresponding player is accessed often.
-+ When a variable name is used multiple times throughout a function but would need to be initialized at more than one point in the function depending on the control path, initialize those variable name(s) using `var` at the very top of the function (right after `var p = cm.getPlayer();` if the function is `action()`) and get rid of `var`s on that variable in any other places throughout the function.
-+ Avoid using explicit loops (`for`, `while`) and temporary variables (e.g. `var i = 0;`, `var objectsCollectedInLoop = [];`). Prefer to use `Array` methods like `.forEach()` `.map()`, `.filter()`, `.reduce()`, `.reduceRight()`, `.every()`, etc. instead, unless explicit loops are necessary or these methods are problematic in the specific case in question.
++ Avoid using explicit loops (`for`, `while`) and temporary variables (e.g. `let i = 0;`, `const objectsCollectedInLoop = [];`). Prefer to use `Array` methods like `.forEach()` `.map()`, `.filter()`, `.reduce()`, `.reduceRight()`, `.every()`, etc. instead, unless explicit loops are necessary or these methods are problematic in the specific case in question.
     - When dealing with collections directly from native Java, the same  rule applies, but with the `Iterable#forEach` method and with `Stream` methods.
-    - When writing in this style, it is often beneficial to use some of the ECMAScript 6+ `Array.prototype` functions that were added to facilitate it. Since Nashorn implements ECMAScript 5.1, this means "importing" polyfills of these functions as needed, e.g. `.find()`, `.findIndex()`, `.includes()`.
 + Don't pass numbers to Java methods that accept integral types (`int`, `long`, `short`, `byte`) unless you can guarantee that the number will always be integral; this often means using `Math.floor`, `Math.ceil`, or `Math.round`, as appropriate.
 + Explicitly throwing exceptions should be rare in script code, and when it is done, should have a string detailing a description of the exception passed in to the constructor:
 
@@ -323,7 +440,7 @@
 + Avoid extensively manipulating or creating new instances of Java `Collection`s. Instead, either use encapsulated methods (thus not having to work with the `Collection`s at all), or convert them to native Javascript collections, e.g.:
 
     ```javascript
-    var playerLevels = [];
+    const playerLevels = [];
 
     p.getParty()
      .getMembers()
@@ -335,6 +452,19 @@
          playerLevels.push(lv);
      });
     ```
+
+    - Or, even better:
+
+        ```javascript
+        const playerLevels =
+            jsArray(
+                p.getParty()
+                 .getMembers()
+            )
+            .map(function(chr) {
+                return chr.getLevel();
+            });
+        ```
 
 + When manipulating/comparing against any instances of the native Java type `String`, **coerce it to a Javascript 'string' first**:
 

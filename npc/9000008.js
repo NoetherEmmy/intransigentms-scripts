@@ -6,14 +6,16 @@
  * Quest ID: 2021
  */
 
-var MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
-var Rectangle    = Java.type("java.awt.Rectangle");
+"use strict";
 
-var status;
-var id = 2021;
-var mapId = 105;
-var mobId = 8200000;
-var spawnArea = new Rectangle(-430, -2900, 800, 2850);
+const MapleCQuests = Java.type("net.sf.odinms.client.MapleCQuests");
+const Rectangle    = Java.type("java.awt.Rectangle");
+
+let status;
+const id = 2021;
+const mapId = 105;
+const mobId = 8200000;
+const spawnArea = new Rectangle(-430, -2900, 800, 2850);
 
 function start() {
     status = -1;
@@ -21,13 +23,9 @@ function start() {
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var map, dsw;
+    const p = cm.getPlayer();
 
-    if (mode === -1 || true) {
-        cm.dispose();
-        return;
-    } else if (mode === 0 && status === 0) {
+    if (mode === -1 || mode === 0 && status === 0) {
         cm.dispose();
         return;
     }
@@ -35,9 +33,11 @@ function action(mode, type, selection) {
 
     if (p.getMap().getId() === 105) {
         if (cm.canComplete(id)) {
-            p.getMap().disposeAllDynamicSpawnWorkers();
-            p.getMap().killAllMonsters(false);
-            p.getMap().clearDrops();
+            const m = p.getMap();
+            m.cancelAllPeriodicMonsterDrops();
+            m.disposeAllDynamicSpawnWorkers();
+            m.killAllMonsters(false);
+            m.clearDrops();
             cm.warp(103000000);
         }
         cm.dispose();
@@ -52,7 +52,12 @@ function action(mode, type, selection) {
                 return;
             }
         } else if (status === 1) {
-            cm.sendSimple(MapleCQuests.loadQuest(id).getInfo() + "\r\n\r\n#L0#Um... what do you want?#l\r\n#L1#(stare back at the man)#l\r\n#L2#(walk away, ignoring the man)#l");
+            cm.sendSimple(`\
+${MapleCQuests.loadQuest(id).getInfo()}\r\n\
+\r\n\
+#L0#Um... what do you want?#l\r\n\
+#L1#(stare back at the man)#l\r\n\
+#L2#(walk away, ignoring the man)#l`);
         } else if (status === 2) {
             if (mode === 0) {
                 cm.sendOk("#egrumbles under breath#n");
@@ -76,7 +81,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                var msg = "";
+                let msg;
                 switch (selection) {
                     case 0:
                         msg = "#eas you wave your arms in front of the man, he appears to be limply taking a dive towards your arms, and towards the ground below#n";
@@ -122,7 +127,7 @@ function action(mode, type, selection) {
             if (!cm.startCQuest(id)) {
                 cm.sendOk(cm.randomText(8));
             } else {
-                map = p.getClient().getChannelServer().getMapFactory().getMap(mapId);
+                const map = p.getClient().getChannelServer().getMapFactory().getMap(mapId);
                 if (map.playerCount() > 0) {
                     p.dropMessage("It looks like someone's already doing the quest on this channel. Maybe try another channel?");
                     cm.dispose();
@@ -131,7 +136,14 @@ function action(mode, type, selection) {
                 map.disposeAllDynamicSpawnWorkers();
                 map.killAllMonsters(false);
                 map.clearDrops();
-                dsw = map.registerDynamicSpawnWorker(mobId, spawnArea, 3200, 96 * 1000, true, 8000);
+                const dsw = map.registerDynamicSpawnWorker(
+                    mobId,
+                    spawnArea,
+                    2500,
+                    92 * 1000,
+                    false,
+                    0
+                );
                 cm.warp(map.getId());
                 dsw.start();
             }

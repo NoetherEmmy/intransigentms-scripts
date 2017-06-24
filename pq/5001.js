@@ -3,9 +3,13 @@
  * The Lobby
  */
 
+"use strict";
+
 function init() {
     pq.getPlayers().forEach(function(p) {
-        p.dropMessage("The manor's lobby is lengthy, and several apparently unassociated people are milling about just outside of the gala.");
+        p.dropMessage(
+            "The manor's lobby is lengthy, and several apparently unassociated people are milling about just outside of the gala."
+        );
         mi.setPlayerProperty(p, "intimidated", false);
         mi.setPlayerProperty(p, "persuaded", false);
     });

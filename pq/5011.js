@@ -3,14 +3,15 @@
  * Escaping The Back Way
  */
 
-var JavaMath                  = Java.type("java.lang.Math");
-var MapleInventoryManipulator = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
-var Point                     = Java.type("java.awt.Point");
+"use strict";
 
-var recipe = 4031396;
-var obsReactId = 9990002;
-var boxReactId = 2001;
-var obsLocs =
+const MapleInventoryManipulator = Java.type("net.sf.odinms.server.MapleInventoryManipulator");
+const Point                     = Java.type("java.awt.Point");
+
+const recipe = 4031396;
+const obsReactId = 9990002;
+const boxReactId = 2001;
+const obsLocs =
 [
     new Point(-2127, -626), new Point(1354, -949),  new Point(-1542, -626), new Point(-974, -626),
     new Point(-419, -626),  new Point(94, -626),    new Point(750, -626),   new Point(1392, -626),
@@ -19,7 +20,7 @@ var obsLocs =
     new Point(972, -366),   new Point(1544, -356),  new Point(1922, -356),  new Point(1964, -70),
     new Point(1539, -70),   new Point(1000, -70),   new Point(492, -70)
 ];
-var boxLocs =
+const boxLocs =
 [
     new Point(-1754, -498), new Point(-1269, -443), new Point(-1077, -443), new Point(-660, -443),
     new Point(-494, -443),  new Point(-74, -443),   new Point(423, -443),   new Point(1195, -443),
@@ -28,19 +29,10 @@ var boxLocs =
     new Point(1199, -163),  new Point(1805, -153),  new Point(1821, 133),   new Point(1373, 81),
     new Point(820, 133),    new Point(366, 133)
 ];
-var obsIds = [];
-var boxIds = [];
-var noop = function() {};
-var fallenYThreshold = 165;
-
-Array.prototype.fisherYates = function() {
-    for (var i = this.length - 1; i > 0; --i) {
-        var swapIndex = Math.floor(JavaMath.random() * (i + 1));
-        var temp = this[swapIndex];
-        this[swapIndex] = this[i];
-        this[i] = temp;
-    }
-};
+let obsIds = [];
+let boxIds = [];
+const noop = function() {};
+const fallenYThreshold = 165;
 
 function init() {
     // Add the recipes that players gather to pq items

@@ -5,16 +5,18 @@
  * ID: 9901019
  */
 
-var Point = Java.type("java.awt.Point");
+"use strict";
 
-var status;
-var thisMap = 5004;
-var map1 = 5005;
-var map2 = 5006;
+const Point = Java.type("java.awt.Point");
+
+let status;
+const thisMap = 5004;
+const map1 = 5005;
+const map2 = 5006;
 
 function combinations(set, choose) {
     if (set.length < choose) {
-        return undefined;
+        return;
     }
     if (choose === 0) {
         return [[]];
@@ -23,7 +25,9 @@ function combinations(set, choose) {
         return [set];
     }
     return set.reduce(function(x, y, z) {
-        if (set.length - z - 1 < choose - 1) return x;
+        if (set.length - z - 1 < choose - 1) {
+            return x;
+        }
         return x.concat(combinations(set.slice(z + 1), choose - 1).map(function(w) {
             return w.concat([y]);
         }));
@@ -50,7 +54,9 @@ function getPartySplit(pq) {
                 ];
             })
             .reduce(function(prevBest, newCombi) {
-                return combiScore(newCombi) < combiScore(prevBest) ? newCombi : prevBest;
+                return combiScore(newCombi) < combiScore(prevBest) ?
+                    newCombi :
+                    prevBest;
             });
     }
 
@@ -59,43 +65,31 @@ function getPartySplit(pq) {
     }).fisherYates());
 }
 
-Array.prototype.fisherYates = function() {
-    var newArray = this.slice();
-    for (var i = newArray.length - 1; i > 0; --i) {
-        var swapIndex = Math.floor(Math.random() * (i + 1));
-        var temp = newArray[swapIndex];
-        newArray[swapIndex] = newArray[i];
-        newArray[i] = temp;
-    }
-    return newArray;
-};
-
 function start() {
     status = -1;
     action(1, 0, 0);
 }
 
 function action(mode, type, selection) {
-    var p = cm.getPlayer();
-    var pq = p.getPartyQuest();
-    var mi = p.getMap().getPartyQuestInstance();
-    var _chrs;
+    const p = cm.getPlayer();
+    const pq = p.getPartyQuest();
+    const mi = p.getMap().getPartyQuestInstance();
 
-    if (mode < 0 || (status < 1 && mode === 0)) {
+    if (mode < 0 || status < 1 && mode === 0) {
         cm.dispose();
         return;
     }
     status += mode === 1 ? 1 : -1;
-    
+
     if (p.getMapId() === 5004) {
         switch (status) {
-            case 0:
-                var doneCombat = mi.playersWithProperty("combat")
-                                   .size() > 0;
-                var noMobsLeft = p.getMap().mobCount() === 0;
-                //print(doneCombat + " " + noMobsLeft);
+            case 0: {
+                const doneCombat = mi.playersWithProperty("combat")
+                                     .size() > 0;
+                const noMobsLeft = p.getMap().mobCount() === 0;
+
                 if (doneCombat && noMobsLeft) {
-                    var leaderSelection = "";
+                    let leaderSelection = "";
                     if (pq.isLeader(p)) {
                         leaderSelection = "\r\n#L1#(open the door and hope nothing unfortunate is on the other side)#l";
                     }
@@ -109,9 +103,10 @@ function action(mode, type, selection) {
                     return;
                 }
                 break;
-            case 1:
+            }
+            case 1: {
                 switch (selection) {
-                    case 1:
+                    case 1: {
                         // HACK ALERT
                         try {
                             pq.unregisterMap(map1);
@@ -121,11 +116,11 @@ function action(mode, type, selection) {
                         }
                         //
 
-                        var partySplit = getPartySplit(pq);
+                        const partySplit = getPartySplit(pq);
 
-                        var msg1 = "As you split off from the rest of your party and go right, you enter into a portion of the library you hadn't seen when you came through the first time. This portion of the library is perhaps not quite as kempt as the rest of it; bookshelves are scattered around almost aimlessly, and the books themselves are flying all about.";
-                        var msg2 = "As you split off from the rest of your party and go left, you descend a long flight of stairs, arriving at what can only be described as the basement. Many-floored and spacious, one wonders what this basement was built to store, considering that it appears to store a whole lot of nothing at the moment.";
-                        
+                        const msg1 = "As you split off from the rest of your party and go right, you enter into a portion of the library you hadn't seen when you came through the first time. This portion of the library is perhaps not quite as kempt as the rest of it; bookshelves are scattered around almost aimlessly, and the books themselves are flying all about.";
+                        const msg2 = "As you split off from the rest of your party and go left, you descend a long flight of stairs, arriving at what can only be described as the basement. Many-floored and spacious, one wonders what this basement was built to store, considering that it appears to store a whole lot of nothing at the moment.";
+
                         pq.registerMap(map1);
                         pq.registerMap(map2);
 
@@ -140,35 +135,37 @@ function action(mode, type, selection) {
 
                         pq.unregisterMap(thisMap);
                         break;
+                    }
                     case 2:
                         cm.sendOk("#eknowing that this door is near where the library was, you put your ear to the door not expecting to hear much#n\r\n\r\n#einstead, you hear the humming of what could only be some kind of flying insects or small birds, and the wet squishing of damp fabric#n");
                         break;
                 }
                 cm.dispose();
                 return;
+            }
             default:
                 cm.dispose();
                 return;
         }
     } else if (p.getMapId() === 5005 || p.getMapId() === 5006 || p.getMapId() === 5010) {
-        var mapId = p.getMapId();
-        var nextMapIncrement = mapId === 5010 ? 1 : 2;
-        var players = mapId === 5010 ? pq.getPlayers() : p.getMap().getCharacters();
-        var radius = 125;
-        var doorPositions =
+        const mapId = p.getMapId();
+        const nextMapIncrement = mapId === 5010 ? 1 : 2;
+        const players = mapId === 5010 ? pq.getPlayers() : p.getMap().getCharacters();
+        const radius = 125;
+        const doorPositions =
         {
             5005: new Point(2366, -800),
             5006: new Point(-2364, -84),
             5010: new Point(1779,  -83)
         };
         switch (status) {
-            case 0:
-                var playersInRange =
+            case 0: {
+                const playersInRange =
                     players
-                     .stream()
-                     .allMatch(function(c) {
-                         return c.getPosition().distance(doorPositions[mapId]) <= radius;
-                     });
+                        .stream()
+                        .allMatch(function(c) {
+                            return c.getPosition().distance(doorPositions[mapId]) <= radius;
+                        });
                 if (playersInRange) {
                     cm.sendSimple("You and the party members you have in the room with you approach the door, having navigated this strange and torturous room.\r\n\r\n#L0#(push into the door to enter further into the manor)#l\r\n#L1#(step away from the door)#l");
                 } else {
@@ -177,13 +174,14 @@ function action(mode, type, selection) {
                     return;
                 }
                 break;
-            case 1:
+            }
+            case 1: {
                 switch (selection) {
                     case 0:
                         pq.registerMap(mapId + nextMapIncrement);
                         if (mapId === 5010) {
-                            var charNum = 1;
-                            _chrs = [];
+                            let charNum = 1;
+                            const _chrs = [];
                             p.getMap()
                              .getCharacters()
                              .forEach(function(c) {
@@ -191,7 +189,7 @@ function action(mode, type, selection) {
                              });
                             _chrs
                                 .forEach(function(c) {
-                                    var portalNum;
+                                    let portalNum;
                                     if (charNum === 1) {
                                         portalNum = 0;
                                     } else if (charNum === 2) {
@@ -209,7 +207,7 @@ function action(mode, type, selection) {
                                     charNum++;
                                 });
                         } else {
-                            _chrs = [];
+                            const _chrs = [];
                             p.getMap()
                              .getCharacters()
                              .forEach(function(c) {
@@ -227,6 +225,7 @@ function action(mode, type, selection) {
                         return;
                 }
                 break;
+            }
             default:
                 cm.dispose();
                 return;

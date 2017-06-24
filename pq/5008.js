@@ -3,17 +3,7 @@
  * The Chef's Kitchen
  */
 
-var JavaMath = Java.type("java.lang.Math");
-var Point    = Java.type("java.awt.Point");
-
-Array.prototype.fisherYates = function() {
-    for (var i = this.length - 1; i > 0; --i) {
-        var swapIndex = Math.floor(JavaMath.random() * (i + 1));
-        var temp = this[swapIndex];
-        this[swapIndex] = this[i];
-        this[i] = temp;
-    }
-};
+"use strict";
 
 function init() {
     map.restartRespawnWorker();

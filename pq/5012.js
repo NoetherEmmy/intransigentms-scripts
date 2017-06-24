@@ -3,31 +3,32 @@
  * The Backest Way
  */
 
+"use strict";
+
 // Math.cbrt polyfill
 if (!Math.cbrt) {
     Math.cbrt = function(x) {
-        var y = Math.pow(Math.abs(x), 1 / 3);
+        const y = Math.pow(Math.abs(x), 1 / 3);
         return x < 0 ? -y : y;
     };
 }
 
-var Collectors        = Java.type("java.util.stream.Collectors");
-//var ExpTable          = Java.type("net.sf.odinms.client.ExpTable");
-var MapleLifeFactory  = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
-var MapleMonsterStats = Java.type("net.sf.odinms.server.life.MapleMonsterStats");
-var Point             = Java.type("java.awt.Point");
-var Rectangle         = Java.type("java.awt.Rectangle");
-var TimerManager      = Java.type("net.sf.odinms.server.TimerManager");
+const Collectors        = Java.type("java.util.stream.Collectors");
+const MapleLifeFactory  = Java.type("net.sf.odinms.server.life.MapleLifeFactory");
+const MapleMonsterStats = Java.type("net.sf.odinms.server.life.MapleMonsterStats");
+const Point             = Java.type("java.awt.Point");
+const Rectangle         = Java.type("java.awt.Rectangle");
+const TimerManager      = Java.type("net.sf.odinms.server.TimerManager");
 
-var anniversaryCake = 9400570;
-var theChef = 9901023;
-var cakeMob = 9400512;
-var puffDaddies = [9400589, 9400590, 9400591];
-var puffDaddy;
-var spawnRate = 1000 + 500;
-var spawnArea = new Rectangle(-103, -618, 2170, 20); // x, y, width, height
-var tMan, mobCheckTask, mobsKilled, cakeKillTask;
-var playerLevels, rmsLevel, cubemeanLevel, geomeanLevel, harmmeanLevel, partySize;
+const anniversaryCake = 9400570;
+const theChef = 9901023;
+const cakeMob = 9400512;
+const puffDaddies = [9400589, 9400590, 9400591];
+let puffDaddy;
+const spawnRate = 1000 + 500;
+const spawnArea = new Rectangle(-103, -618, 2170, 20); // x, y, width, height
+let tMan, mobCheckTask, mobsKilled, cakeKillTask;
+let playerLevels, rmsLevel, cubemeanLevel, geomeanLevel, harmmeanLevel, partySize;
 
 function rms(a) {
     return Math.sqrt(a.reduce(function(accu, x) {
@@ -83,12 +84,12 @@ function startFight() {
     } else {
         puffDaddy = puffDaddies[2];
     }
-    var toSpawn = MapleLifeFactory.getMonster(puffDaddy);
-    var puffDaddyOverride = new MapleMonsterStats();
+    const toSpawn = MapleLifeFactory.getMonster(puffDaddy);
+    const puffDaddyOverride = new MapleMonsterStats();
 
     // Override stats
     // HP = floor(max(0, (rmsLevel - 80)^3) * 5 + 50 * partySize * rmsLevel^2 - 1000 * (rmsLevel - 5)^1.5) + 1000
-    var puffDaddyHp = Math.floor(50 * partySize * cubemeanLevel * cubemeanLevel - 1000 * Math.pow(cubemeanLevel - 5, 1.5) + 1000 + Math.max(0, Math.pow(cubemeanLevel - 80, 3)) * 5);
+    const puffDaddyHp = Math.floor(50 * partySize * cubemeanLevel * cubemeanLevel - 1000 * Math.pow(cubemeanLevel - 5, 1.5) + 1000 + Math.max(0, Math.pow(cubemeanLevel - 80, 3)) * 5);
     toSpawn.setHp(puffDaddyHp);
     puffDaddyOverride.setHp(puffDaddyHp);
 
@@ -96,15 +97,15 @@ function startFight() {
     //var xpToLv = ExpTable.getExpNeededForLevel(Math.floor(harmmeanLevel));
 
     //var puffDaddyExp = Math.floor((xpToLv / 2) / (Math.floor(harmmeanLevel) / 10));
-    var puffDaddyExp = 0;
+    const puffDaddyExp = 0;
     puffDaddyOverride.setExp(puffDaddyExp);
 
     // Apply override stats
     toSpawn.setOverrideStats(puffDaddyOverride);
 
     // Get position relative to The Chef
-    var chefPos = map.getNPCById(theChef).getPosition();
-    var spawnPos = new Point(chefPos.x + 50, chefPos.y - 75);
+    const chefPos = map.getNPCById(theChef).getPosition();
+    const spawnPos = new Point(chefPos.x + 50, chefPos.y - 75);
     //toSpawn.setPosition(spawnPos);
     // Spawn!
     map.spawnMonsterOnGroundBelow(toSpawn, spawnPos);
@@ -145,15 +146,15 @@ function startFight() {
     }, 10 * 1000, 10 * 1000);
 
     cakeKillTask = tMan.register(function() {
-        var mobs =
+        const mobs =
             map.getAllMonsters()
                .stream()
                .filter(function(m) {
                    return m.getId() !== puffDaddy;
                }).collect(Collectors.toList());
 
-        var mobCount = mobs.size();
-        var i = 0;
+        let mobCount = mobs.size();
+        let i = 0;
         while (mobCount > 65) {
             map.silentKillMonster(mobs.get(i).getObjectId());
             mobCount--;

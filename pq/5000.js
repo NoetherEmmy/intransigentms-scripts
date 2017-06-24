@@ -3,31 +3,38 @@
  * Starting map; On the way to Lilin's Manor
  */
 
-var Collections        = Java.type("java.util.Collections");
-var Double             = Java.type("java.lang.Double");
-var MapleMapObjectType = Java.type("net.sf.odinms.server.maps.MapleMapObjectType");
-var Point              = Java.type("java.awt.Point");
-var TimerManager       = Java.type("net.sf.odinms.server.TimerManager");
+"use strict";
 
-var nextMap = 5001;
-var stageTime = 2;
-var tMan = TimerManager.getInstance();
-var warnSchedule, warpSchedule;
-var batKillTask;
+const Collections        = Java.type("java.util.Collections");
+const Double             = Java.type("java.lang.Double");
+const MapleMapObjectType = Java.type("net.sf.odinms.server.maps.MapleMapObjectType");
+const Point              = Java.type("java.awt.Point");
+const TimerManager       = Java.type("net.sf.odinms.server.TimerManager");
+
+const nextMap = 5001;
+const stageTime = 2;
+const tMan = TimerManager.getInstance();
+let warnSchedule, warpSchedule;
+let batKillTask;
 
 function init() {
     map.restartRespawnWorker();
 
     pq.getPlayers().forEach(function(p) {
-        p.dropMessage("It's gotten very dark outside, making it difficult to see your surroundings properly -- including your enemies. You are in a state of Darkness.");
-        p.giveDebuff(121, 8, (stageTime * 60 * 1000) - 500); // Level 8 [max] Darkness for 4 minutes minus a little; the duration of this stage.
+        p.dropMessage(
+            "It's gotten very dark outside, making it difficult to see your surroundings properly -- including your enemies. You are in a state of Darkness."
+        );
+        p.giveDebuff(121, 8, stageTime * 60 * 1000 - 500); // Level 8 [max] Darkness for 4 minutes minus a little; the duration of this stage.
     });
 
     warnSchedule = tMan.schedule(function() {
         pq.getPlayers().forEach(function(p) {
-            p.dropMessage(5, "Bearlywyne: \"Looks like we're just about here are Lilin's Manor. Watch yer step on the way out, will ya?\"");
+            p.dropMessage(
+                5,
+                "Bearlywyne: \"Looks like we're just about here are Lilin's Manor. Watch yer step on the way out, will ya?\""
+            );
         });
-    }, (stageTime * 60 * 1000) - (15 * 1000)); // 15 seconds from the end.
+    }, stageTime * 60 * 1000 - 15 * 1000); // 15 seconds from the end.
 
     warpSchedule = tMan.schedule(function() {
         pq.registerMap(nextMap);
@@ -36,15 +43,16 @@ function init() {
     }, stageTime * 60 * 1000); // At the end.
 
     batKillTask = tMan.register(function() {
-        var mobs = map.getMapObjectsInRange(
-                       new Point(0, 0),
-                       Double.POSITIVE_INFINITY,
-                       Collections.singletonList(MapleMapObjectType.MONSTER)
-                   );
+        const mobs =
+            map.getMapObjectsInRange(
+                new Point(0, 0),
+                Double.POSITIVE_INFINITY,
+                Collections.singletonList(MapleMapObjectType.MONSTER)
+            );
         if (mobs.size() > 6) {
             map.silentKillMonster(mobs.get(0).getObjectId());
         }
-    }, 900);
+    }, 9 * 100);
 
     map.setDropsDisabled(true);
 }

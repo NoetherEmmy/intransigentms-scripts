@@ -5,19 +5,20 @@
  * Map has spawns for mob 7110301
  */
 
-var JavaMath = Java.type("java.lang.Math");
-var Point    = Java.type("java.awt.Point");
+"use strict";
 
-var trigReactId = 2008007;
-var stunTime = 7 * 1000;
-var fallenYThreshold = 0;
+const Point = Java.type("java.awt.Point");
 
-var trigLocs =
+const trigReactId = 2008007;
+const stunTime = 7 * 1000;
+const fallenYThreshold = 0;
+
+const trigLocs =
 [
     new Point(639, -355), new Point(392, -355)
 ];
-var trigIds = [];
-var possibleIngredients =
+const trigIds = [];
+const possibleIngredients =
 [
     "potato",          "vegan chicken",     "granola",            "dill",
     "stale cake",      "quinoa",            "dandelion green",    "tequila",
@@ -45,7 +46,7 @@ var possibleIngredients =
     "vanilla bean",    "poppy seed",        "mango",              "nectarine",
     "walnut",          "wheatgrass",        "marmalade"
 ];
-var dishTypes =
+const dishTypes =
 [
     "stew",        "cake",      "sorbet",   "dip",
     "smoothie",    "casserole", "pancake",  "sandwich",
@@ -57,18 +58,9 @@ var dishTypes =
     "donut",       "volcano",   "pie",      "skillet",
     "wrap",        "pasta"
 ];
-var recipes1 = {};
-var recipes2 = {};
-var sharedRecipe, answer;
-
-Array.prototype.fisherYates = function() {
-    for (var i = this.length - 1; i > 0; --i) {
-        var swapIndex = Math.floor(JavaMath.random() * (i + 1));
-        var temp = this[swapIndex];
-        this[swapIndex] = this[i];
-        this[i] = temp;
-    }
-};
+const recipes1 = {};
+const recipes2 = {};
+let sharedRecipe, answer;
 
 function init() {
     map.restartRespawnWorker();
@@ -79,33 +71,27 @@ function init() {
     mi.listenForPlayerMovement();
 
     // Generate recipes/puzzle
-    var ingredients = [];
-    var ingredientQuantities = [];
-    var stockQuantities = [];
-    var name = "";
-    var j, i;
-
     possibleIngredients.fisherYates();
 
-    for (j = 0; j < 4; ++j) {
-        ingredients = [];
-        ingredientQuantities = [];
-        stockQuantities = [];
-        name = "";
+    for (let j = 0; j < 4; ++j) {
+        const ingredients = [];
+        const ingredientQuantities = [];
+        const stockQuantities = [];
+        let name = "";
 
-        for (i = 0; i < 4; ++i) {
+        for (let i = 0; i < 4; ++i) {
             ingredients.push(possibleIngredients.pop());
-            ingredientQuantities.push(Math.floor(JavaMath.random() * 8) + 2);
+            ingredientQuantities.push(Math.floor(Math.random() * 8) + 2);
         }
-        for (i = 0; i < 2; ++i) {
-            stockQuantities.push([ingredients[i], Math.floor(JavaMath.random() * 30) + 30]);
+        for (let i = 0; i < 2; ++i) {
+            stockQuantities.push([ingredients[i], Math.floor(Math.random() * 30) + 30]);
         }
 
         name += ingredients[0].slice(0, 1).toUpperCase() + ingredients[0].slice(1);
-        for (i = 1; i < ingredients.length; ++i) {
+        for (let i = 1; i < ingredients.length; ++i) {
             name += " " + ingredients[i];
         }
-        name += " " + dishTypes[Math.floor(JavaMath.random() * dishTypes.length)];
+        name += " " + dishTypes[Math.floor(Math.random() * dishTypes.length)];
 
         if (j % 2 === 0) {
             recipes1[name] = {
@@ -122,17 +108,16 @@ function init() {
         }
     }
 
-    ingredients = [];
-    ingredientQuantities = [];
-    name = "";
+    const ingredients = [];
+    const ingredientQuantities = [];
+    let name = "";
 
-    var canMake = 3000000; // Magic large number
-    var recipeName, recipe, ingredientIndex, ingredientQuantity;
+    let canMake = 30000000; // Magic large number
 
-    for (recipeName in recipes1) {
-        recipe = recipes1[recipeName];
-        ingredientIndex = Math.floor(JavaMath.random() * 2);
-        ingredientQuantity = Math.floor(JavaMath.random() * 8) + 2;
+    for (const recipeName in recipes1) {
+        const recipe = recipes1[recipeName];
+        const ingredientIndex = Math.floor(Math.random() * 2);
+        const ingredientQuantity = Math.floor(Math.random() * 8) + 2;
         ingredients.push(recipe.ingredients[ingredientIndex]);
         ingredientQuantities.push(ingredientQuantity);
 
@@ -140,14 +125,14 @@ function init() {
             canMake,
             Math.floor(
                 (recipe.stockQuantities[ingredientIndex][1] - recipe.ingredientQuantities[ingredientIndex]) /
-                ingredientQuantity
+                    ingredientQuantity
             )
         );
     }
-    for (recipeName in recipes2) {
-        recipe = recipes2[recipeName];
-        ingredientIndex = Math.floor(JavaMath.random() * 2);
-        ingredientQuantity = Math.floor(JavaMath.random() * 8) + 2;
+    for (const recipeName in recipes2) {
+        const recipe = recipes2[recipeName];
+        const ingredientIndex = Math.floor(Math.random() * 2);
+        const ingredientQuantity = Math.floor(Math.random() * 8) + 2;
         ingredients.push(recipe.ingredients[ingredientIndex]);
         ingredientQuantities.push(ingredientQuantity);
 
@@ -155,22 +140,22 @@ function init() {
             canMake,
             Math.floor(
                 (recipe.stockQuantities[ingredientIndex][1] - recipe.ingredientQuantities[ingredientIndex]) /
-                ingredientQuantity
+                    ingredientQuantity
             )
         );
     }
 
     name += ingredients[0].slice(0, 1).toUpperCase() + ingredients[0].slice(1);
-    for (i = 1; i < ingredients.length; ++i) {
+    for (let i = 1; i < ingredients.length; ++i) {
         name += " " + ingredients[i];
     }
-    name += " " + dishTypes[Math.floor(JavaMath.random() * dishTypes.length)];
+    name += " " + dishTypes[Math.floor(Math.random() * dishTypes.length)];
 
     sharedRecipe = {
         name: name,
         ingredients: ingredients,
         ingredientQuantities: ingredientQuantities,
-        serves: Math.floor(JavaMath.random() * 8) + 2
+        serves: Math.floor(Math.random() * 8) + 2
     };
 
     answer = canMake * sharedRecipe.serves;

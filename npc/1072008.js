@@ -4,14 +4,16 @@
  * ID: 1072008
  */
 
-var status;
+"use strict";
+
+let status;
 
 function start() {
     status = -1;
     action(1, 0, 0);
 }
 
-function action (mode, type, selection) {
+function action(mode, type, selection) {
     if (mode === -1) {
         cm.dispose();
         return;

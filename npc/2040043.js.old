@@ -1,0 +1,178 @@
+/*
+ * Blue Balloon
+ * LPQ NPC
+ * ID: 2040043
+ */
+
+"use strict";
+
+const MaplePacketCreator = Java.type("net.sf.odinms.tools.MaplePacketCreator");
+const Rectangle          = Java.type("java.awt.Rectangle");
+
+let status;
+const boxLocs = // x, y, width, height
+    [ new Rectangle(-244, -243, 56, 39) // 1
+    , new Rectangle(-174, -243, 56, 39) // 2
+    , new Rectangle(-244, -204, 56, 39) // 3
+    , new Rectangle(-174, -204, 56, 39) // 4
+    , new Rectangle(-111, -204, 56, 39) // 5
+    , new Rectangle(-244, -165, 56, 39) // 6
+    , new Rectangle(-174, -165, 56, 39) // 7
+    , new Rectangle(-111, -165, 56, 39) // 8
+    , new Rectangle(-40,  -165, 56, 39) // 9
+    ];
+const failMessages =
+    [ "Ooof, wow. Close. #eVery#n close."
+    , "You know, I never really did like numbers. I bet that's why they put me in here, the bastards.\r\n\r\nWhat have #enumbers#n ever done for me?"
+    , "Have you started counting how many times you've failed?"
+    , "Ok haha, hurry it up, man. Usually you're supposed to be done by now."
+    , "Wrong!"
+    , "Nice try, my dude."
+    , "I can just... stop talking, if you really need to concentrate."
+    , "Did you know that my glorious blue sheen is all natural?"
+    , "I hope you're not allergic to latex."
+    , "Honestly this room is a little silly, I admit it."
+    , "You look tired."
+    , "#eyawn#n\r\n\r\nAlright, can ya hurry it up?"
+    , "Hmm, I guess it must be one of the other 125 combinations."
+    , "But I repeat myself..."
+    , "Hm?\r\n\r\nOh no, that's not it, ahaha. Not even close, really."
+    , "Here, I'll give you a hint: It involves standing on boxes."
+    , "I'm sure you'll get it eventually."
+    , "Come here often?"
+    , "You know, we're like 109 floors off the ground here.\r\n\r\nI'd think you would all be a bit chilly with clothes like that."
+    , "I promise I didn't design this puzzle."
+    , "Have you tried prayer?"
+    , "Come on, you can do it! Eventually!"
+    ];
+const exp = 5040;
+//
+let occupied;
+//
+
+Array.prototype.choose = function(n) {
+    if (n > this.length || n < 0) {
+        return [];
+    }
+    if (n === 0) {
+        return [[]];
+    }
+    if (n === 1) {
+        return this.map(function(elem) {
+            return [elem];
+        });
+    }
+    return [].concat.apply(
+        [],
+        this.map(function(elem, i, this_) {
+            return this_
+                .slice(i + 1)
+                .choose(n - 1)
+                .map(function(tail) {
+                    return [elem].concat(tail);
+                });
+        })
+    );
+};
+
+const boxCombos = range(1, 10).choose(5);
+
+function start() {
+    status = -1;
+    action(1, 0, 0);
+}
+
+function action(mode, type, selection) {
+    const p = cm.getPlayer();
+    const eim = p.getEventInstance();
+
+    if (!eim) {
+        cm.warpRandom(922010000);
+        cm.dispose();
+        return;
+    }
+
+    if ("" + eim.getProperty("8stageclear") === "true") {
+        cm.sendOk("Heyyyy... good job, good job, ya did it.\r\n\r\nI always believed in ya.");
+        cm.dispose();
+        return;
+    }
+
+    if (!cm.isLeader()) {
+        cm.sendOk("#ewhistling#n");
+        cm.dispose();
+        return;
+    }
+
+    if (mode === 1) {
+        status++;
+    } else {
+        cm.dispose();
+        return;
+    }
+
+    if (p.getMapId() !== 922010800) {
+        cm.sendOk("Report this to a GM.");
+        cm.dispose();
+        return;
+    }
+
+    if (!eim.getProperty("stage8combo")) {
+        eim.setProperty(
+            "stage8combo",
+            "" + chooseRandom(range(boxCombos.length))
+        );
+    }
+
+    const comboNum = eim.getProperty("stage8combo");
+
+    occupied = new Set(
+        jsArray(eim.getPlayers())
+            .map(function(player) {
+                return 1 + boxLocs.findIndex(function(loc) {
+                    return loc.contains(player.getPosition());
+                });
+            })
+            .filter(function(i) {
+                return i > 0;
+            })
+    );
+
+    if (occupied.size !== 5 && !p.isGM()) {
+        cm.sendOk("Woah there, pardner. Make sure you're trying #r5#k boxes at a time, my dude.");
+        cm.dispose();
+        return;
+    }
+
+    const correctCombo = boxCombos[parseInt(comboNum)];
+    const correct = correctCombo.every(function(n) {
+        return occupied.has(n);
+    });
+
+    const map = eim.getMapInstance(p.getMapId());
+    if (correct || p.isGM()) {
+        map.broadcastMessage(MaplePacketCreator.showEffect("quest/party/clear"));
+        map.broadcastMessage(MaplePacketCreator.playSound("Party1/Clear"));
+        map.broadcastMessage(MaplePacketCreator.environmentChange("gate", 2));
+
+        eim.setProperty("8stageclear", "true");
+
+        const portal = eim.getMapInstance(p.getMapId() + 100).getPortal("next00");
+
+        if (portal) {
+            portal.setScriptName("lpq9");
+        }
+
+        cm.givePartyExp(exp, eim.getPlayers());
+
+        cm.sendOk("#eWOOHOO!!! YA GOT IT!#n\r\n\r\nAlright, time to skedaddle.");
+    } else {
+        map.broadcastMessage(MaplePacketCreator.playSound("Party1/Failed"));
+        map.broadcastMessage(MaplePacketCreator.showEffect("quest/party/wrong_kor"));
+
+        cm.sendNext(chooseRandom(failMessages));
+    }
+
+    cm.dispose();
+    return;
+}

@@ -3,16 +3,18 @@
  * Ventilation Main Chamber
  */
 
-var Collections        = Java.type("java.util.Collections");
-var Item               = Java.type("net.sf.odinms.client.Item");
-var MapleCharacter     = Java.type("net.sf.odinms.client.MapleCharacter");
-var MapleMapObjectType = Java.type("net.sf.odinms.server.maps.MapleMapObjectType");
-var Point              = Java.type("java.awt.Point");
-var Rectangle          = Java.type("java.awt.Rectangle");
-var TimerManager       = Java.type("net.sf.odinms.server.TimerManager");
+"use strict";
 
-var keyId = 4031217; // Golden Key
-var dropPositions =
+const Collections        = Java.type("java.util.Collections");
+const Item               = Java.type("net.sf.odinms.client.Item");
+const MapleCharacter     = Java.type("net.sf.odinms.client.MapleCharacter");
+const MapleMapObjectType = Java.type("net.sf.odinms.server.maps.MapleMapObjectType");
+const Point              = Java.type("java.awt.Point");
+const Rectangle          = Java.type("java.awt.Rectangle");
+const TimerManager       = Java.type("net.sf.odinms.server.TimerManager");
+
+const keyId = 4031217; // Golden Key
+const dropPositions =
 [
     new Point(105, -3289),  new Point(-27, -3214),  new Point(-51, -4855),  new Point(-35, -2001),
     new Point(-51, -4483),  new Point(-96, -2436),  new Point(149, -3691),  new Point(41, -1002),
@@ -28,37 +30,36 @@ var dropPositions =
     new Point(-131, -1062), new Point(151, -5079),  new Point(-86, -4843),  new Point(-81, -4808),
     new Point(126, -2338),  new Point(-99, -2666),  new Point(29, -675),    new Point(-25, -3953)
 ];
-var fakeCharacter = new MapleCharacter();
-var bottomRect = new Rectangle(-250, 0, 550, 450); // x, y, width, height
-var mobKillTask;
-
-function fisherYates(a) {
-    for (var i = a.length - 1; i > 0; --i) {
-        var j = Math.floor(Math.random() * (i + 1));
-        var temp = a[i];
-        a[i] = a[j];
-        a[j] = temp;
-    }
-    return a;
-}
+const fakeCharacter = new MapleCharacter();
+const bottomRect = new Rectangle(-250, 0, 550, 450); // x, y, width, height
+let mobKillTask;
 
 function init() {
     map.restartRespawnWorker();
-    
+
     pq.addPqItem(keyId);
 
-    var keyCount = 14 + 6 * pq.getPlayers().size();
-    dropPositions = fisherYates(dropPositions);
-    for (var i = 0; i < keyCount; ++i) {
+    const keyCount = 14 + 6 * pq.getPlayers().size();
+    dropPositions.fisherYates();
+    for (let i = 0; i < keyCount; ++i) {
         fakeCharacter.setPosition(dropPositions[i]);
-        map.spawnItemDrop(fakeCharacter, fakeCharacter, new Item(keyId, 0, 1), dropPositions[i], true, false);
+        map.spawnItemDrop(
+            fakeCharacter,
+            fakeCharacter,
+            new Item(keyId, 0, 1),
+            dropPositions[i],
+            true,
+            false
+        );
     }
 
     pq.getPlayers().forEach(function(p) {
-        p.dropMessage("You easily find the way into the next portion of the ventilation chamber, but to your surprise it seems that the ventilation plague has hoarded all of the keys!");
+        p.dropMessage(
+            "You easily find the way into the next portion of the ventilation chamber, but to your surprise it seems that the ventilation plague has hoarded all of the keys!"
+        );
     });
 
-    var tMan = TimerManager.getInstance();
+    const tMan = TimerManager.getInstance();
     mobKillTask = tMan.register(function() {
         map.getMapObjectsInRect(
                bottomRect,
@@ -67,7 +68,7 @@ function init() {
            .forEach(function(m) {
                map.silentKillMonster(m.getObjectId());
            });
-    }, 2000, 2000);
+    }, 2 * 1000, 2 * 1000);
 
     map.toggleDrops();
 }

@@ -2,11 +2,13 @@
  * Lakelis -- Victoria Road | Kerning City (103000000)
  */
 
-var status;
-var minLevel = 11;
-var maxLevel = 71;
-var minPlayers = 3;
-var maxPlayers = 6;
+"use strict";
+
+let status;
+const minLevel = 11;
+const maxLevel = 71;
+const minPlayers = 3;
+const maxPlayers = 6;
 
 function start() {
     status = -1;
@@ -20,7 +22,7 @@ function action(mode, type, selection) {
         cm.dispose();
         return;
     }
-    
+
     if (status === 0) {
         // Lakelis has no preamble, directly checks if you're in a party
         if (cm.getParty() === null) { // No party
@@ -33,10 +35,10 @@ function action(mode, type, selection) {
             return;
         } else {
             // Check if all party members are within the level range
-            var party = cm.getParty().getMembers();
-            var inMap = cm.partyMembersInMap();
-            var levelValid = 0;
-            for (var i = 0; i < party.size(); ++i) {
+            let party = cm.getParty().getMembers();
+            const inMap = cm.partyMembersInMap();
+            let levelValid = 0;
+            for (let i = 0; i < party.size(); ++i) {
                 if (party.get(i).getLevel() >= minLevel && party.get(i).getLevel() <= maxLevel) {
                     levelValid++;
                 }
@@ -50,7 +52,7 @@ function action(mode, type, selection) {
                 cm.dispose();
                 return;
             } else {
-                var em = cm.getEventManager("KerningPQ");
+                const em = cm.getEventManager("KerningPQ");
                 if (em === null) {
                     cm.sendOk("This PQ is not currently available.");
                 } else if (em.getProperty("KPQOpen").equals("true")) {

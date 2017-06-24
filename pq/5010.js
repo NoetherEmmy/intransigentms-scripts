@@ -3,14 +3,16 @@
  * Es Car Go, Go, Go!
  */
 
-var ArrayList    = Java.type("java.util.ArrayList");
-var Rectangle    = Java.type("java.awt.Rectangle");
+"use strict";
+
+//var ArrayList    = Java.type("java.util.ArrayList");
+const Rectangle = Java.type("java.awt.Rectangle");
 //var TimerManager = Java.type("net.sf.odinms.server.TimerManager");
 
-var greenSnail = 100102;
-var spawnArea = new Rectangle(-1544, -600, 2483, 5); // x, y, width, height
-var spawnRate = 750;
-var fallenYThreshold = 190;
+const greenSnail = 100102;
+const spawnArea = new Rectangle(-1544, -600, 2483, 5); // x, y, width, height
+const spawnRate = 750;
+const fallenYThreshold = 190;
 //var tMan, snailKillTask;
 
 function init() {
@@ -21,7 +23,7 @@ function init() {
     mi.listenForPlayerMovement();
 
     map.registerDynamicSpawnWorker(greenSnail, spawnArea, spawnRate).start();
-    
+
     /*
     snailKillTask = tMan.register(function() {
         var mobs = new ArrayList(map.getAllMonsters());
