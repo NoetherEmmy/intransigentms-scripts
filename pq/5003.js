@@ -53,22 +53,21 @@ function init() {
         );
     }
 
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p =>
         p.dropMessage(
             "You easily find the way into the next portion of the ventilation chamber, but to your surprise it seems that the ventilation plague has hoarded all of the keys!"
-        );
-    });
+        )
+    );
 
     const tMan = TimerManager.getInstance();
-    mobKillTask = tMan.register(function() {
+    mobKillTask = tMan.register(() =>
         map.getMapObjectsInRect(
-               bottomRect,
-               Collections.singletonList(MapleMapObjectType.MONSTER)
-           )
-           .forEach(function(m) {
-               map.silentKillMonster(m.getObjectId());
-           });
-    }, 2 * 1000, 2 * 1000);
+            bottomRect,
+            Collections.singletonList(MapleMapObjectType.MONSTER)
+        )
+        .forEach(m => map.silentKillMonster(m.getObjectId())),
+        2 * 1000, 2 * 1000
+    );
 
     map.toggleDrops();
 }

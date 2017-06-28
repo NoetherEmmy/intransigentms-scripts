@@ -12,7 +12,7 @@ function init() {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

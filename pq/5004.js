@@ -22,13 +22,11 @@ function init() {
     if ("" + mi.getPlayerProperty(pq.getLeader(), "enteredFrom") === "vent") {
         msg = "Having safely navigated the vents, you and your party sneak in through the library and find yourselves in the main chamber. " + msg;
     }
-    pq.getPlayers().forEach(function(p) {
-        p.dropMessage(msg);
-    });
+    pq.getPlayers().forEach(p => p.dropMessage(msg));
 }
 
 function enemyDialogue() {
-    dialogueSchedule = tMan.schedule(function() {
+    dialogueSchedule = tMan.schedule(() => {
         const npcsm = NPCScriptManager.getInstance();
         /*
         pq.getPlayers().forEach(function(p) {
@@ -48,13 +46,15 @@ function enemyDialogue() {
 
 function periodicStun(player, stunTime, period, duration) {
     const ps = [];
-    const stunTask = tMan.register(function() {
+    const stunTask = tMan.register(
         // Level 13 stun for stunTime milliseconds
-        player.giveDebuff(123, 13, stunTime);
-    }, period);
-    const cancelTask = tMan.schedule(function() {
-        stunTask.cancel(false);
-    }, duration);
+        () => player.giveDebuff(123, 13, stunTime),
+        period
+    );
+    const cancelTask = tMan.schedule(
+        () => stunTask.cancel(false),
+        duration
+    );
 
     ps.push(stunTask);
     ps.push(cancelTask);
@@ -65,7 +65,7 @@ function combat(player) {
     mi.setPlayerPropertyIfNotSet(player, "combat", true);
     if (!hasStarted) {
         hasStarted = true;
-        pq.getPlayers().forEach(function(p) {
+        pq.getPlayers().forEach(p => {
             p.giveDebuff(121, 8,  30 * 1000); // Darkness, 30 sec.
             periodicStun(p, 1000, 5 * 1000, 30 * 1000);
         });
@@ -75,9 +75,7 @@ function combat(player) {
             Math.round(
                 pq.getPlayers()
                   .stream()
-                  .mapToInt(function(p) {
-                      return p.getLevel();
-                  })
+                  .mapToInt(p => p.getLevel())
                   .sum() / pq.getPlayers().size()
             );
         const aHp = 5 * avgLevel * avgLevel + 2000;
@@ -120,7 +118,7 @@ function playerDead(player) {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

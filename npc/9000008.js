@@ -63,42 +63,40 @@ ${MapleCQuests.loadQuest(id).getInfo()}\r\n\
                 cm.sendOk("#egrumbles under breath#n");
                 cm.dispose();
                 return;
-            } else {
-                switch (selection) {
-                    case 2:
-                        cm.sendOk("#eyou feel the man's gaze, cold, on the back of your neck as you walk away#n");
-                        cm.dispose();
-                        return;
-                    case 1:
-                    case 0:
-                        cm.sendSimple("#eyou take a moment to look the man over when he doesn't respond to you immediately#n\r\n\r\n#eyou soon realize that the man isn't quite staring directly at you or really making any eye contact#n\r\n\r\n#eyou notice the man's gaze start to gradually falter, a sleepy/drowsed look coming slowly over his visage#n\r\n\r\n#L0#(attempt to get the man's attention with more obvious movement)#l\r\n#L1#(look around to see if anyone is nearby that might be able to help or who knows the man)#l\r\n#L2#(step back)#l\r\n#L3#(walk briskly away)#l");
-                        break;
-                }
+            }
+            switch (selection) {
+                case 2:
+                    cm.sendOk("#eyou feel the man's gaze, cold, on the back of your neck as you walk away#n");
+                    cm.dispose();
+                    return;
+                case 1:
+                case 0:
+                    cm.sendSimple("#eyou take a moment to look the man over when he doesn't respond to you immediately#n\r\n\r\n#eyou soon realize that the man isn't quite staring directly at you or really making any eye contact#n\r\n\r\n#eyou notice the man's gaze start to gradually falter, a sleepy/drowsed look coming slowly over his visage#n\r\n\r\n#L0#(attempt to get the man's attention with more obvious movement)#l\r\n#L1#(look around to see if anyone is nearby that might be able to help or who knows the man)#l\r\n#L2#(step back)#l\r\n#L3#(walk briskly away)#l");
+                    break;
             }
         } else if (status === 3) {
             if (mode === 0) {
                 cm.sendOk("#egrumbles under breath#n");
                 cm.dispose();
                 return;
-            } else {
-                let msg;
-                switch (selection) {
-                    case 0:
-                        msg = "#eas you wave your arms in front of the man, he appears to be limply taking a dive towards your arms, and towards the ground below#n";
-                        break;
-                    case 1:
-                        msg = "#eyou swiftly scan your surroundings, but much to your dismay most (all?) of the shops are closed, and no one is in sight#n\r\n\r\n#eas you are scanning around, you notice the man out of the corner of your eye limply and slowly taking a dive towards the ground#n";
-                        break;
-                    case 2:
-                        msg = "#eas you step backwards, you could swear for a second that the man stepped with you; but he is still limply sitting down#n\r\n\r\n#eyou soon realize that the man is headed straight for the ground#n";
-                        break;
-                    case 3:
-                        cm.dispose();
-                        return;
-                }
-                msg += "\r\n\r\n#L0#(walk towards the man to help him up from falling)#l\r\n#L1#(walk away)#l";
-                cm.sendSimple(msg);
             }
+            let msg;
+            switch (selection) {
+                case 0:
+                    msg = "#eas you wave your arms in front of the man, he appears to be limply taking a dive towards your arms, and towards the ground below#n";
+                    break;
+                case 1:
+                    msg = "#eyou swiftly scan your surroundings, but much to your dismay most (all?) of the shops are closed, and no one is in sight#n\r\n\r\n#eas you are scanning around, you notice the man out of the corner of your eye limply and slowly taking a dive towards the ground#n";
+                    break;
+                case 2:
+                    msg = "#eas you step backwards, you could swear for a second that the man stepped with you; but he is still limply sitting down#n\r\n\r\n#eyou soon realize that the man is headed straight for the ground#n";
+                    break;
+                case 3:
+                    cm.dispose();
+                    return;
+            }
+            msg += "\r\n\r\n#L0#(walk towards the man to help him up from falling)#l\r\n#L1#(walk away)#l";
+            cm.sendSimple(msg);
         } else if (status === 4) {
             switch (selection) {
                 case 0:
@@ -127,7 +125,11 @@ ${MapleCQuests.loadQuest(id).getInfo()}\r\n\
             if (!cm.startCQuest(id)) {
                 cm.sendOk(cm.randomText(8));
             } else {
-                const map = p.getClient().getChannelServer().getMapFactory().getMap(mapId);
+                const map =
+                    p.getClient()
+                     .getChannelServer()
+                     .getMapFactory()
+                     .getMap(mapId);
                 if (map.playerCount() > 0) {
                     p.dropMessage("It looks like someone's already doing the quest on this channel. Maybe try another channel?");
                     cm.dispose();
@@ -136,16 +138,15 @@ ${MapleCQuests.loadQuest(id).getInfo()}\r\n\
                 map.disposeAllDynamicSpawnWorkers();
                 map.killAllMonsters(false);
                 map.clearDrops();
-                const dsw = map.registerDynamicSpawnWorker(
+                map.registerDynamicSpawnWorker(
                     mobId,
                     spawnArea,
                     2500,
                     92 * 1000,
                     false,
-                    0
-                );
+                    9999
+                ).start();
                 cm.warp(map.getId());
-                dsw.start();
             }
             cm.dispose();
             return;
@@ -170,9 +171,8 @@ ${MapleCQuests.loadQuest(id).getInfo()}\r\n\
             if (mode === 0) {
                 cm.dispose();
                 return;
-            } else {
-                cm.sendSimple(cm.selectQuest(id, "#eglares back at you with a keystony gaze#n"));
             }
+            cm.sendSimple(cm.selectQuest(id, "#eglares back at you with a keystony gaze#n"));
         } else if (status === 1) {
             cm.sendYesNo(cm.randomText(7));
         } else if (status === 2) {

@@ -63,13 +63,13 @@ function action(mode, type, selection) {
                 }
                 case 1: {
                     jsArray(p.getMap().getCharacters())
-                        .forEach(function(player) {
+                        .forEach(player =>
                             MapleInventoryManipulator.removeAllById(
                                 player.getClient(),
                                 passOfDim,
                                 false
-                            );
-                        });
+                            )
+                        );
 
                     const map = eim.getMapInstance(p.getMapId());
 

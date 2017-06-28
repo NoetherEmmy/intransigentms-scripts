@@ -37,22 +37,22 @@ function action(mode, type, selection) {
         }
         if (status === 1) {
             jsArray(p.getMap().getCharacters())
-                .forEach(function(player) {
+                .forEach(player =>
                     MapleInventoryManipulator.removeAllById(
                         player.getClient(),
                         keyOfDim,
                         false
-                    );
-                });
+                    )
+                );
 
             jsArray(p.getMap().getCharacters())
-                .forEach(function(player) {
+                .forEach(player =>
                     MapleInventoryManipulator.removeAllById(
                         player.getClient(),
                         passOfDim,
                         false
-                    );
-                });
+                    )
+                );
 
             const target = eim.getMapInstance(922011000);
             p.changeMap(target, target.getPortal("st00"));
@@ -78,22 +78,22 @@ function action(mode, type, selection) {
     if (p.getMapId() === 922010900) {
         if (p.getItemQuantity(keyOfDim, false) >= keyOfDimNeeded) {
             jsArray(p.getMap().getCharacters())
-                .forEach(function(player) {
+                .forEach(player =>
                     MapleInventoryManipulator.removeAllById(
                         player.getClient(),
                         keyOfDim,
                         false
-                    );
-                });
+                    )
+                );
 
             jsArray(p.getMap().getCharacters())
-                .forEach(function(player) {
+                .forEach(player =>
                     MapleInventoryManipulator.removeAllById(
                         player.getClient(),
                         passOfDim,
                         false
-                    );
-                });
+                    )
+                );
 
             map.broadcastMessage(MaplePacketCreator.showEffect("quest/party/clear"));
             map.broadcastMessage(MaplePacketCreator.playSound("Party1/Clear"));

@@ -163,15 +163,23 @@ function init() {
     // Add triggers
     trigLocs.fisherYates();
 
-    trigIds.push(mi.registerTrigger(trigReactId, trigLocs[0], function() {
-        mi.setPropertyForAll("unlockedSafe", true);
-    }));
+    trigIds.push(
+        mi.registerTrigger(
+            trigReactId,
+            trigLocs[0],
+            () => mi.setPropertyForAll("unlockedSafe", true)
+        )
+    );
 
-    trigIds.push(mi.registerTrigger(trigReactId, trigLocs[1], function() {
-        map.getCharacters().forEach(function(c) {
-            c.giveDebuff(123, 13, stunTime);
-        });
-    }));
+    trigIds.push(
+        mi.registerTrigger(
+            trigReactId,
+            trigLocs[1],
+            () => map.getCharacters().forEach(c =>
+                c.giveDebuff(123, 13, stunTime)
+            )
+        )
+    );
 
     mi.setPropertyForAll("failedComboCount", 0);
 }
@@ -202,7 +210,7 @@ function heardPlayerMovement(player, position) {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

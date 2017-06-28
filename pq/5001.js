@@ -6,7 +6,7 @@
 "use strict";
 
 function init() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         p.dropMessage(
             "The manor's lobby is lengthy, and several apparently unassociated people are milling about just outside of the gala."
         );
@@ -16,7 +16,7 @@ function init() {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

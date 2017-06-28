@@ -37,9 +37,9 @@ function action(mode, type, selection) {
         case 1:
             if (selection === 1) {
                 const target = eim.getMapInstance(922011100);
-                eim.getPlayers().forEach(function(player) {
-                    player.changeMap(target, target.getPortal("st00"));
-                });
+                eim.getPlayers().forEach(player =>
+                    player.changeMap(target, target.getPortal("st00"))
+                );
             } else {
                 cm.sendOk("O--oh, alright then.");
             }

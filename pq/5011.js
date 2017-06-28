@@ -31,7 +31,7 @@ const boxLocs =
 ];
 let obsIds = [];
 let boxIds = [];
-const noop = function() {};
+const noop = () => {};
 const fallenYThreshold = 165;
 
 function init() {
@@ -40,9 +40,7 @@ function init() {
 
     // Set up obstacles
     obsLocs.fisherYates();
-    obsIds = obsLocs.map(function(ol) {
-        return mi.registerObstacle(obsReactId, ol);
-    });
+    obsIds = obsLocs.map(ol => mi.registerObstacle(obsReactId, ol));
 
     /*
      * Using Trigger to encapsulate reactor creation for boxes
@@ -52,9 +50,7 @@ function init() {
      * is eschewed in favor of the act() function of the reactor script
      * cleaning up the reactor using MapleMap.removeReactor(oid).
      */
-    boxIds = boxLocs.map(function(bl) {
-        return mi.registerTrigger(boxReactId, bl, noop);
-    });
+    boxIds = boxLocs.map(bl => mi.registerTrigger(boxReactId, bl, noop));
 
     mi.listenForPlayerMovement();
 }
@@ -66,8 +62,12 @@ function heardPlayerMovement(player, position) {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
-        MapleInventoryManipulator.removeAllById(p.getClient(), recipe, false);
+    pq.getPlayers().forEach(p => {
+        MapleInventoryManipulator.removeAllById(
+            p.getClient(),
+            recipe,
+            false
+        );
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

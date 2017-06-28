@@ -34,9 +34,7 @@ function init() {
     map.restartRespawnWorker();
 
     // Set up obstacles
-    obsIds = obsLocs.map(function(ol) {
-        return mi.registerObstacle(obsReactId, ol);
-    });
+    obsIds = obsLocs.map(ol => mi.registerObstacle(obsReactId, ol));
 
     mi.listenForPlayerMovement();
 
@@ -51,7 +49,7 @@ function registerTrigs(foreignObsIds, pqmi) {
 
     trigLocs.fisherYates();
 
-    range(0, localObsIds.length).forEach(function(i) {
+    range(0, localObsIds.length).forEach(i => {
         let randObsId = Math.floor(Math.random() * (localObsIds.length - 1));
         if (randObsId >= i) {
             randObsId++;
@@ -62,7 +60,7 @@ function registerTrigs(foreignObsIds, pqmi) {
         trigIds.push(mi.registerTrigger(
             trigReactId,
             trigLocs[i],
-            function() {
+            () => {
                 if (!mi.toggleObstacle(localObsId1)) {
                     print("Toggle obstacle failure: " + localObsId1);
                 }
@@ -75,11 +73,11 @@ function registerTrigs(foreignObsIds, pqmi) {
     });
 
     // Set up triggers to control some of the foreign obstacles
-    range(0, foreignObsIds.length).forEach(function(i) {
+    range(0, foreignObsIds.length).forEach(i => {
         trigIds.push(mi.registerTrigger(
             trigReactId,
             trigLocs[trigIds.length],
-            function() {
+            () => {
                 try {
                     pqmi.toggleObstacle(foreignObsIds[i]);
                 } catch (ignored) {
@@ -101,7 +99,7 @@ function registerTrigs(foreignObsIds, pqmi) {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

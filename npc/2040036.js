@@ -11,7 +11,7 @@ const MaplePacketCreator        = Java.type("net.sf.odinms.tools.MaplePacketCrea
 
 let status;
 const passOfDim = 4001022;
-const passOfDimNeeded = 64;
+const passOfDimNeeded = 20;
 const exp = 2100;
 
 function start() {
@@ -63,13 +63,13 @@ function action(mode, type, selection) {
                 }
                 case 1: {
                     jsArray(p.getMap().getCharacters())
-                        .forEach(function(player) {
+                        .forEach(player =>
                             MapleInventoryManipulator.removeAllById(
                                 player.getClient(),
                                 passOfDim,
                                 false
-                            );
-                        });
+                            )
+                        );
 
                     const map = eim.getMapInstance(p.getMapId());
 

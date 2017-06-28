@@ -38,7 +38,7 @@
 ## Style
 
 + Do not use tabs (ASCII character 9) in code, ever. Use spaces (ASCII character 32) instead.
-+ Use 4 spaces per level of indentation, always.
++ Use 4 spaces per level of indentation.
 + Use indentation appropriately and consistently, as shown throughout the examples here.
 + All scripts **MUST** pass [jshint](http://jshint.com/install/) on the settings above with zero errors and zero warnings, with the following exception:
     - Top-level declarations (basically just `function` declarations) that are called "into" from outside of the script will end up being marked as "declared but unused" by jshint, which is of course OK since there's just no way for jshint to know that it actually *is* used.
@@ -61,8 +61,8 @@
 
         ```javascript
         cm.sendSimple(`\
-        #eglares more intensely#n\r\n\r\n\
-        \
+        #eglares more intensely#n\r\n\
+        \r\n\
         #L0#I said, what the #efuck#n are you looking at? (brandish weapon)#l\r\n\
         #L1#You in there, Mr. Steward?#l\r\n\
         #L2#(blow into his face)#l\r\n\
@@ -70,6 +70,18 @@
         ```
 
 + Use semicolons. Do not rely on automatic semicolon insertion (ASI).
++ All anonymous functions must be written using "fat-arrow" (`=>`) notation:
+
+    ```javascript
+    // Bad:
+    const squares = range(100).map(function(x) {
+        return x * x;
+    });
+
+    // Good:
+    const squares = range(100).map(x => x * x);
+    ```
+
 + All scripts should consist of two parts, a *head* and a *body*. The body is more variant depending on the type of script, but the head should be formatted something like:
 
     ```javascript
@@ -148,7 +160,7 @@
 + When writing self-invoking functions, use the following syntax:
 
     ```javascript
-    (function() {
+    (() => {
         print("Hi!");
         // ...
     })();
@@ -171,8 +183,23 @@
     ```
 
 + `if`, `else if`, `else`, `while`, `for`, `try`, and `catch` blocks should follow the following style:
-    - They must be enclosed with curly braces (`{}`), with one exception:
-        * When there is a stand-alone `if` statement whose condition and body statements are quite short, it can be written all on one line without line breaks.
+    - `switch` cases must be wrapped with curly braces whenever one or more variables are **declared** inside of the case (Nashorn will refuse to run the script if you don't do this):
+
+        ```javascript
+        switch (foo) {
+            case "bar":
+            case "baz": {
+                const quibble = 83856;
+
+                // ...
+            }
+            case "quux":
+                cm.dispose();
+                return;
+        }
+        ```
+
+    - They must be enclosed with curly braces (`{ }`).
     - There should be a single space after the keyword, a single space after the parentheses, a newline after the opening curly brace, and a single newline between the end of the last statement and the closing curly brace:
         * Bad:
 
@@ -193,13 +220,22 @@
             }
             ```
 
-+ Function declarations should be of the following form:
++ Top-level function declarations should be in one of the following forms, as appropriate:
 
     ```javascript
     function generateFoos(fooCount) {
         // ...
+
         return someFoos;
     }
+    ```
+
+    ```javascript
+    const generateFoos = fooCount => {
+        // ...
+
+        return someFoos;
+    };
     ```
 
 + When declaring multiple variables, indent after line breaks:
@@ -211,7 +247,7 @@
     ```
 
 + Newlines in string literals are done Windows/CRLF style, viz. `\r\n`
-    - Because of this, template literal strings should not contain (unescaped) literal newlines:
+    - Template literal strings **should not contain unescaped literal newlines**. Script files are kept in LF format, so the resulting string literals as interpreted by Nashorn would be incorrect:
 
         ```javascript
         // Bad:
@@ -229,7 +265,7 @@
 
 + Prefer to use template literals over string concatenation when doing string interpolation, although either is fine.
 + String literals that aren't template literals should be denoted using double quotes (`"..."`) unless the literal is exactly 1 character long, in which case single quotes (`'...'`) are appropriate.
-+ Do not make calls to constructors without using the `new` keyword, even if it would not functionally make a difference.
++ Do not make calls to constructors without using the `new` keyword, even if it would not functionally make a difference. The only exceptions are constructors that are defined by the ECMAScript standard as not using the `new` key word, e.g. the `Symbol()` constructor.
 + When there are multiple `Java.type()` invocations, they should all be lined up near the top of the script and spaced out to be in line with one another:
 
     ```javascript
@@ -290,7 +326,7 @@
         }
 
         // Good:
-        const x = (function() {
+        const x = (() => {
             try {
                 return foo();
             } catch (e) {
@@ -305,6 +341,7 @@
     ```javascript
     // Bad:
     const Status = Packages.net.sf.odinms.client.MapleQuestStatus.Status;
+
     const isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
 
     // Even worse:
@@ -314,10 +351,11 @@
 
     // Good:
     const Status = Java.type("net.sf.odinms.client.MapleQuestStatus.Status");
+
     const isComplete = cm.getQuestStatus(9999).equals(Status.COMPLETED);
     ```
 
-+ Do not `load('nashorn:mozilla_compat.js');`. This means using `Java.type()` as shown above, and not using `for each` loops, as shown below.
++ Do not `load('nashorn:mozilla_compat.js');`. This means using `Java.type()` as shown above, and not using `for each` loops or any other Mozilla-specific features, as shown below.
 + Never use the `Array` or `String` constructors, ever.
 
     ```javascript
@@ -337,7 +375,7 @@
     cm.sendOk(`There are currently ${parties * partySize} people here.`);
     ```
 
-+ Never make comparisons using `==` or `!=`. Always use `===` or `!==` instead, unless two non-primitive and non-null Java objects are being compared, in which case use `.equals()`.
++ **Never** make comparisons using `==` or `!=`. Always use `===` or `!==` instead, unless two non-primitive and non-null Java objects are being compared, in which case use `.equals()`.
 + Do not use `for each` loops. Prefer to use `.forEach()` instead. Failing that, use `for ... of ...`, and failing that, use a C-like for loop:
 
     ```javascript
@@ -357,9 +395,7 @@
     }
 
     // Very nice:
-    potatoes.forEach(function(potato) {
-        p.dropMessage(potato.name());
-    });
+    potatoes.forEach(potato => p.dropMessage(potato.name()));
     ```
 
 + Respect control flow. When control flow statements like `return;` or `break;` or `continue;` are invoked, don't put extra control flow around them that is unnecessary:
@@ -424,19 +460,28 @@
     ```
 
 + Wherever `console.log();` or Java's `System.out.println();` would be used, use `print();` instead; this is for debugging purposes only.
-+ Prefer using `switch` statements over chains of `if`/`else if`/`else`.
-+ When writing NPC scripts, the `action()` function as well as any other functions that need to access the player should start with the statement `const p = cm.getPlayer();` so that `getPlayer()` no longer has to be called again, and the player can simply be referenced as `p` throughout.
-    - This also applies ot other scripts, if the corresponding player is accessed often.
++ As stated above, `switch` cases **must** be wrapped with curly braces whenever one or more variables are **declared** inside of the case. Nashorn will throw a nasty error and refuse to run the script if you don't do this.
++ When writing NPC scripts, the `action()` function as well as any other functions that need to access the player should (in cases where the player object is accessed) start with the statement `const p = cm.getPlayer();` so that `getPlayer()` no longer has to be called again, and the player can simply be referenced as `p` throughout.
+    - This also applies to other scripts, if the corresponding player is accessed often.
 + Avoid using explicit loops (`for`, `while`) and temporary variables (e.g. `let i = 0;`, `const objectsCollectedInLoop = [];`). Prefer to use `Array` methods like `.forEach()` `.map()`, `.filter()`, `.reduce()`, `.reduceRight()`, `.every()`, etc. instead, unless explicit loops are necessary or these methods are problematic in the specific case in question.
-    - When dealing with collections directly from native Java, the same  rule applies, but with the `Iterable#forEach` method and with `Stream` methods.
-+ Don't pass numbers to Java methods that accept integral types (`int`, `long`, `short`, `byte`) unless you can guarantee that the number will always be integral; this often means using `Math.floor`, `Math.ceil`, or `Math.round`, as appropriate.
-+ Explicitly throwing exceptions should be rare in script code, and when it is done, should have a string detailing a description of the exception passed in to the constructor:
+    - When dealing with collections directly from native Java, the same  rule applies, but with the `Iterable#forEach` method and with `Stream` methods. Alternatively, Java collections can be converted to native JavaScript objects using the global `jsArray` function (see intransigentms-utils-docs.md).
++ Don't pass numbers to Java methods that accept integral types (`int`, `long`, `short`, `byte`) unless you can guarantee that the number will always be integral; this often means using `Math.floor`, `Math.ceil`, `Math.round`, or `Math.trunc`, as appropriate.
++ Explicitly throwing exceptions should be rare in script code, and when it **is** done, should have a string detailing a description of the exception passed in to the constructor:
 
     ```javascript
     throw new RuntimeError("This very specific bad thing happened at runtime!");
     ```
 
 + Do not ignore caught exceptions unless there is an explicit and **controlled** reason for doing so.
+    - In the case that you **do** do this, name the caught exception `andIgnore`:
+
+        ```javascript
+        try {
+            foo();
+        } catch (andIgnore) {
+        }
+        ```
+
 + Avoid extensively manipulating or creating new instances of Java `Collection`s. Instead, either use encapsulated methods (thus not having to work with the `Collection`s at all), or convert them to native Javascript collections, e.g.:
 
     ```javascript
@@ -445,25 +490,16 @@
     p.getParty()
      .getMembers()
      .stream()
-     .map(function(chr) {
-         return chr.getLevel();
-     })
-     .forEach(function(lv) {
-         playerLevels.push(lv);
-     });
+     .map(chr => chr.getLevel())
+     .forEach(lv => playerLevels.push(lv));
     ```
 
     - Or, even better:
 
         ```javascript
         const playerLevels =
-            jsArray(
-                p.getParty()
-                 .getMembers()
-            )
-            .map(function(chr) {
-                return chr.getLevel();
-            });
+            jsArray(p.getParty().getMembers())
+                .map(chr => chr.getLevel());
         ```
 
 + When manipulating/comparing against any instances of the native Java type `String`, **coerce it to a Javascript 'string' first**:
@@ -480,7 +516,7 @@
     }
 
     // We aren't doing anything except passing
-    // it into another Java method here, so
+    // it into another Java method here, so...
     // Not great:
     otherPlayer.dropMessage("" + p.getName());
 

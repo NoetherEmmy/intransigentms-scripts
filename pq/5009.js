@@ -26,30 +26,22 @@ const reactors = [];
 const spawnArea = new Rectangle(-556, -80, 1326, 5); // x, y, width, height
 let tMan, statueTask, debuffCycleCount;
 
-function rms(a) {
-    return Math.sqrt(a.reduce(function(accu, x) {
-        return accu + x * x;
-    }, 0) / a.length);
-}
+const rms = a => Math.sqrt(
+    a.reduce((accu, x) => accu + x * x, 0) / a.length
+);
 
 function init() {
     // Removing all reactors just in case there was a messy dispose last time
     const staleReactorIds = [];
-    map.getAllReactors().forEach(function(r) {
-        staleReactorIds.push(r.getObjectId());
-    });
-    staleReactorIds.forEach(function(oid) {
-        map.removeReactor(oid);
-    });
+    map.getAllReactors().forEach(r => staleReactorIds.push(r.getObjectId()));
+    staleReactorIds.forEach(oid => map.removeReactor(oid));
 
     map.setDropsDisabled(true);
 
     tMan = TimerManager.getInstance();
 
     const playerLevels = [];
-    pq.getPlayers().forEach(function(p) {
-        playerLevels.push(p.getLevel());
-    });
+    pq.getPlayers().forEach(p => playerLevels.push(p.getLevel()));
     const rmsLevel = rms(playerLevels);
     const partySize = Math.max(playerLevels.length, 3);
 
@@ -69,7 +61,15 @@ function init() {
         overrideStats.setMp(1000);
     }
 
-    map.registerDynamicSpawnWorker(mobId, spawnArea, spawnRate, monsterSpawnDuration, false, 0, overrideStats).start();
+    map.registerDynamicSpawnWorker(
+        mobId,
+        spawnArea,
+        spawnRate,
+        monsterSpawnDuration,
+        false,
+        0,
+        overrideStats
+    ).start();
 
     let toSpawn;
     const initSpawnCount = Math.floor(50000 / spawnRate);
@@ -81,7 +81,7 @@ function init() {
         map.spawnMonster(toSpawn);
     }
 
-    reactorPositions.forEach(function(pos) {
+    reactorPositions.forEach(pos => {
         const r = new MapleReactor(MapleReactorFactory.getReactor(reactorId), reactorId);
         r.setDelay(16 * 1000);
         r.setPosition(pos);
@@ -91,19 +91,21 @@ function init() {
 
     const statueTaskRepeatTime = Math.floor(72 / partySize) * 1000;
     debuffCycleCount = 0;
-    statueTask = tMan.register(function() {
+    statueTask = tMan.register(() => {
         const reactorsDestroyed = reactorPositions.length - map.reactorCount();
         if (reactorsDestroyed < Math.min(2 + debuffCycleCount / 2, 4)) {
-            mi.getPlayers().forEach(function(p) {
+            mi.getPlayers().forEach(p => {
                 p.dropMessage("The statues in this room exert a strange force over you, crippling your mind.");
                 p.giveDebuff(128, 6, 2 * 1000); // Seduce
                 p.giveDebuff(120, 12, 12 * 1000 - 100); // Seal
             });
-            tMan.schedule(function() {
-                mi.getPlayers().forEach(function(p) {
-                    p.giveDebuff(121, 8, 10 * 1000); // Darkness
-                });
-            }, 2 * 1000 + 100);
+            tMan.schedule(
+                () =>
+                    mi.getPlayers().forEach(p =>
+                        p.giveDebuff(121, 8, 10 * 1000) // Darkness
+                    ),
+                2 * 1000 + 100
+            );
         }
         debuffCycleCount++;
     }, statueTaskRepeatTime, statueTaskRepeatTime);
@@ -126,9 +128,7 @@ function cancelStatueTask() {
 }
 
 function dispose() {
-    reactors.forEach(function(r) {
-        map.removeReactor(r.getObjectId());
-    });
+    reactors.forEach(r => map.removeReactor(r.getObjectId()));
     reactors.length = 0;
 
     cancelStatueTask();
@@ -136,7 +136,7 @@ function dispose() {
 
     map.disposeAllDynamicSpawnWorkers();
 
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

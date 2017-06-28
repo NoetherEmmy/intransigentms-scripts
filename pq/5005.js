@@ -31,9 +31,7 @@ function init() {
     map.restartRespawnWorker();
 
     // Set up obstacles
-    obsIds = obsLocs.map(function(ol) {
-        return mi.registerObstacle(obsReactId, ol);
-    });
+    obsIds = obsLocs.map(ol => mi.registerObstacle(obsReactId, ol));
 
     mi.listenForPlayerMovement();
 
@@ -51,13 +49,13 @@ function mapRegistered(pqmi) {
 
         // Start at i = 1 because first element of obsLocs/obsIds should be
         // the dead/noncontrolled obstacle
-        range(1, Math.ceil((obsIds.length - 1) / 2) + 1).forEach(function(i) {
+        range(1, Math.ceil((obsIds.length - 1) / 2) + 1).forEach(i => {
             const obsId1 = obsIds[i];
             const obsId2 = obsIds[i - 1];
             trigIds.push(mi.registerTrigger(
                 trigReactId,
                 trigLocs[i - 1],
-                function() {
+                () => {
                     if (!mi.toggleObstacle(obsId1)) {
                         print("Toggle obstacle failure: " + obsId1);
                     }
@@ -81,8 +79,8 @@ function mapRegistered(pqmi) {
         });
         */
 
-        const toggleFn = function(foreignOb1, foreignOb2) {
-            return function() {
+        const toggleFn = (foreignOb1, foreignOb2) =>
+            () => {
                 if (!pqmi.toggleObstacle(foreignOb1)) {
                     print("Toggle obstacle failure: " + foreignOb1);
                 }
@@ -91,7 +89,6 @@ function mapRegistered(pqmi) {
                     print("Toggle obstacle failure: " + foreignOb2);
                 }
             };
-        };
 
         let i;
         for (i = 0; i < foreignObs.length && trigLocs.length > trigIds.length; ++i) {
@@ -160,7 +157,7 @@ function heardPlayerMovement(player, position) {
 }
 
 function dispose() {
-    pq.getPlayers().forEach(function(p) {
+    pq.getPlayers().forEach(p => {
         if (p.getClient().getCM() !== null) {
             p.getClient().getCM().dispose();
         }

@@ -48,9 +48,7 @@ Math.rad = function(n_) {
     }
 
     let prod = 1;
-    r.forEach(function(x) {
-        prod *= x;
-    });
+    r.forEach(x => prod *= x);
 
     return prod;
 };
@@ -81,30 +79,28 @@ function binomDistQ() {
     const n = chooseRandom(range(3, 21));
     const k = chooseRandom(range(1, n + 1));
 
-    const q = `\
+    const question = `\
 ${agent} is ${action[0]}. ${agent} ${action[1]}, on average, ${pNum} out of \
 every 100 ${action[2]}.\r\n\
 \r\n\
 If ${agent} ${action[3]} ${n} times, what is the probability that ${agent} \
 ${action[1]} ${k} times (rounded to the nearest percent)?`;
 
-    const ans =
+    const answer =
         Math.round(
             100 * Math.binom(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k)
         );
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
 function detQ() {
-    const xs = range(9).map(function() {
-        return chooseRandom(-11, 12);
-    });
+    const xs = range(9).map(() => chooseRandom(-11, 12));
 
-    const q = `\
+    const question = `\
 Determine the determinant of the following real 3x3 matrix:\r\n\
 \r\n\
 \t\t  #e(\
@@ -112,89 +108,73 @@ Determine the determinant of the following real 3x3 matrix:\r\n\
 (${xs[3]}, ${xs[4]}, ${xs[5]}), \
 (${xs[6]}, ${xs[7]}, ${xs[8]}))#n`;
 
-    const ans = xs[0] * xs[4] * xs[8] +
-                xs[1] * xs[5] * xs[6] +
-                xs[2] * xs[3] * xs[7] -
-                xs[2] * xs[4] * xs[6] -
-                xs[1] * xs[3] * xs[8] -
-                xs[0] * xs[5] * xs[7];
+    const answer = xs[0] * xs[4] * xs[8] +
+                   xs[1] * xs[5] * xs[6] +
+                   xs[2] * xs[3] * xs[7] -
+                   xs[2] * xs[4] * xs[6] -
+                   xs[1] * xs[3] * xs[8] -
+                   xs[0] * xs[5] * xs[7];
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
 function limQ() {
     const degree = chooseRandom(range(2, 5));
-    const tops = range(degree).map(function() {
-        return [chooseRandom(range(-4, 5)), chooseRandom(range(-4, 5))];
-    });
-    const bottoms = range(degree).map(function() {
-        return [chooseRandom(range(-4, 5)), chooseRandom(range(-4, 5))];
-    });
-    let num = tops.map(function(t) {
-        return t[0];
-    }).reduce(function(x, y) {
-        return x * y;
-    });
-    let den = bottoms.map(function(b) {
-        return b[0];
-    }).reduce(function(x, y) {
-        return x * y;
-    });
-    range(2, Math.max(num, den) + 1).forEach(function(i) {
+    const tops = range(degree).map(() =>
+        [chooseRandom(range(-4, 5)), chooseRandom(range(-4, 5))]
+    );
+    const bottoms = range(degree).map(() =>
+        [chooseRandom(range(-4, 5)), chooseRandom(range(-4, 5))]
+    );
+    let num = tops.map(t => t[0]).reduce((x, y) => x * y);
+    let den = bottoms.map(b => b[0]).reduce((x, y) => x * y);
+    range(2, Math.max(num, den) + 1).forEach(i => {
         if (num % i === 0 && den % 1 === 0) {
             num /= i;
             den /= i;
         }
     });
 
-    const topStr = "[" + tops.map(function(t) {
-        return `(${t[0]}x ${t[1] >= 0 ? "+" : "-"} ${Math.abs(t[1])})`;
-    }).join(" ") + "]";
-    const bottomStr = "[" + bottoms.map(function(b) {
-        return `(${b[0]}x ${b[1] >= 0 ? "+" : "-"} ${Math.abs(b[1])})`;
-    }).join(" ") + "]";
+    const topStr = "[" + tops.map(t =>
+        `(${t[0]}x ${t[1] >= 0 ? "+" : "-"} ${Math.abs(t[1])})`
+    ).join(" ") + "]";
+    const bottomStr = "[" + bottoms.map(b =>
+        `(${b[0]}x ${b[1] >= 0 ? "+" : "-"} ${Math.abs(b[1])})`
+    ).join(" ") + "]";
 
-    const q = `\
+    const question = `\
 Find the limit of the following expression as #ex#n tends to +infinity.\r\n\
 If the result is a fraction, express both the numerator and the denominator.\r\n\
 \r\n\
 #e${topStr} / ${bottomStr}#n`;
 
-    const ans = den === 1 ? num : parseInt(`${num}${Math.abs(den)}`);
+    const answer = den === 1 ? num : parseInt(`${num}${Math.abs(den)}`);
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
 function dotProdQ() {
     const n = chooseRandom(range(3, 7));
-    const a = range(n).map(function() {
-        return chooseRandom(range(-12, 13));
-    });
-    const b = range(n).map(function() {
-        return chooseRandom(range(-12, 13));
-    });
+    const a = range(n).map(() => chooseRandom(range(-12, 13)));
+    const b = range(n).map(() => chooseRandom(range(-12, 13)));
 
-    const q = `\
+    const question = `\
 Find the dot product of #ea#n and #eb#n, where\r\n#e\
 a = (${a.join(", ")})\r\n\
 \r\n\
 b = (${b.join(", ")})#n`;
 
-    const ans = a.map(function(x, i) {
-        return x * b[i];
-    }).reduce(function(x, y) {
-        return x + y;
-    });
+    const answer = a.map((x, i) => x * b[i]).reduce((x, y) => x + y);
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
@@ -204,16 +184,16 @@ function quadrQ() {
     const b = c0 + c1;
     const c = c0 * c1;
 
-    const q = `\
+    const question = `\
 Find all roots of the following polynomial:\r\n\
 \r\n\
 #ex^2 ${b >= 0 ? "+" : "-"} ${Math.abs(b)}x ${c >= 0 ? "+" : "-"} ${Math.abs(c)}#n`;
 
-    const ans = parseInt(`${c0}${Math.abs(c1)}`);
+    const answer = parseInt(`${c0}${Math.abs(c1)}`);
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
@@ -222,14 +202,14 @@ function collatzQ() {
     const collatz = Math.collatz(n);
     const i = chooseRandom(range(2, collatz.length + 1));
 
-    const q = `\
+    const question = `\
 Find the #e${i}#nth element of the Collatz sequence starting with ${n}.`;
 
-    const ans = collatz[i - 1];
+    const answer = collatz[i - 1];
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
@@ -237,14 +217,14 @@ function radQ() {
     const n = chooseRandom(range(3, 1001));
     const rad = Math.rad(n);
 
-    const q = `\
+    const question = `\
 Find the largest squarefree number that divides ${n}.`;
 
-    const ans = rad;
+    const answer = rad;
 
     return {
-        question: q,
-        answer: ans
+        question,
+        answer
     };
 }
 
@@ -367,22 +347,18 @@ digit appears in the answer, and all 0's and negative signs must be omitted.)`);
 
     occupied =
         jsArray(eim.getPlayers())
-            .map(function(player) {
-                return 1 + boxLocs.findIndex(function(loc) {
-                    return loc.contains(player.getPosition());
-                });
-            })
-            .filter(function(i) {
-                return i > 0;
-            })
+            .map(player =>
+                1 + boxLocs.findIndex(loc =>
+                    loc.contains(player.getPosition())
+                )
+            )
+            .filter(i => i > 0)
             .sort();
 
     const correctCombo =
         ("" + eim.getProperty(`stage8answer${doneCount}`))
             .split("")
-            .map(function(chr) {
-                return parseInt(chr);
-            })
+            .map(chr => parseInt(chr))
             .sort();
 
     const correct = "" + occupied === "" + correctCombo;

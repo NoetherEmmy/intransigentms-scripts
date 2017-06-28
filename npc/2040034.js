@@ -44,13 +44,13 @@ function action(mode, type, selection) {
         const levelValid =
             party
                 .stream()
-                .filter(function(pm) {
-                    return pm.getLevel() >= minLevel &&
-                           pm.getLevel() <= maxLevel;
-                })
+                .filter(pm =>
+                    pm.getLevel() >= minLevel &&
+                    pm.getLevel() <= maxLevel
+                )
                 .count();
         if (inMap < minPlayers || inMap > maxPlayers || levelValid !== inMap) {
-            cm.sendOk(`Your party doesn't have between ${minPlayers} and ${maxPlayers} eligible members. Please keep in mind that this party quest is only for players between levels ${minLevel} and ${maxLevel}.`);
+            cm.sendOk(`Your party doesn't have between #b${minPlayers}#k and #b${maxPlayers}#k eligible members. Please keep in mind that this party quest is only for players between levels #r${minLevel}#k and #r${maxLevel}#k.`);
             cm.dispose();
             return;
         } else {
