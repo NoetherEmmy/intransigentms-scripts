@@ -14,6 +14,8 @@ const MapleItemInformationProvider = Java.type("net.sf.odinms.server.MapleItemIn
 const TimerManager                 = Java.type("net.sf.odinms.server.TimerManager");
 
 let status;
+const ii = MapleItemInformationProvider.getInstance();
+const tMan = TimerManager.getInstance();
 const ballroomMap = 5009;
 const backestWayMap = 5012;
 const onyxApple = 2022179;
@@ -22,8 +24,6 @@ let str = 0,
     dex = 0,
     int = 0,
     luk = 0;
-const ii = MapleItemInformationProvider.getInstance();
-const tMan = TimerManager.getInstance();
 let choices, finalChoices;
 
 const prizesAll =
@@ -119,44 +119,49 @@ function action(mode, type, selection) {
                             return;
                     }
                     break;
-                case 3:
+                case 3: {
                     const pointMulti = Math.max(1.1 + (pq.getPoints() - 1200) / 1600, 0.4);
-                    let rankColor;
-                    if (pq.getPoints() >= 2000) {
-                        rankColor = "#g";
-                    } else if (pq.getPoints() >= 900) {
-                        rankColor = "#b";
-                    } else {
-                        rankColor = "#r";
-                    }
+                    const rankColor = (() => {
+                        if (pq.getPoints() >= 2000) {
+                            return "#g";
+                        } else if (pq.getPoints() >= 900) {
+                            return "#b";
+                        } else {
+                            return "#r";
+                        }
+                    })();
                     const exptl = ExpTable.getExpNeededForLevel(p.getLevel());
                     const multi = 6 / Math.log(p.getLevel());
                     const exp = Math.min(Math.floor(exptl * multi * pointMulti), 2147483647);
                     const meso = Math.floor(pointMulti * 3000 * (Math.pow(p.getLevel(), 1.5) + p.getLevel()));
 
-                    let levelPrizes;
-                    if (p.getLevel() <= 70) {
-                        levelPrizes = prizesLow;
-                    } else if (p.getLevel() <= 120) {
-                        levelPrizes = prizesMid;
-                    } else {
-                        levelPrizes = prizesHigh;
-                    }
+                    const levelPrizes = (() => {
+                        if (p.getLevel() <= 70) {
+                            return prizesLow;
+                        } else if (p.getLevel() <= 120) {
+                            return prizesMid;
+                        } else {
+                            return prizesHigh;
+                        }
+                    })();
                     const prize1 = chooseRandom(prizesAll);
                     const prize2 = chooseRandom(levelPrizes);
-                    let prizes = [];
-                    prizes = prizes.concat(prize1.map(multiPrizeConvert));
-                    prizes = prizes.concat(prize2.map(multiPrizeConvert));
-                    const prizeString = prizes.reduce(function(s, prize) {
-                        return s + "\r\n#i" + prize[0] + "#  (" + prize[1] + ")";
-                    }, "");
+                    const prizes =
+                        prize1
+                            .map(multiPrizeConvert)
+                            .concat(
+                                prize2.map(multiPrizeConvert)
+                            );
+                    const prizeString = prizes.reduce(
+                        (s, prize) =>
+                            s + "\r\n#i" + prize[0] + "#  (" + prize[1] + ")",
+                        ""
+                    );
 
                     cm.gainExp(exp);
                     cm.gainMeso(meso);
                     cm.gainItem(recipeCollection, 1);
-                    prizes.forEach(function(prize) {
-                        cm.gainItem(prize[0], prize[1]);
-                    });
+                    prizes.forEach(prize => cm.gainItem(prize[0], prize[1]));
 
                     pq.removePlayer(p, true);
 
@@ -179,6 +184,7 @@ function action(mode, type, selection) {
                     );
                     cm.dispose();
                     return;
+                }
                 default:
                     cm.dispose();
                     return;
@@ -196,7 +202,7 @@ function action(mode, type, selection) {
                         "It's too late, really. We already got like, a bunch of your recipes.",
                         "(yawn)"
                     ];
-                    cm.sendSimple("So... it's you, huh?\r\n\r\nAnother rat trying to start shit and steal my #egod damn recipes#n?\r\n\r\n#rThere's a place for people like you#k.\r\n\r\n" + choiceString(choices));
+                    cm.sendSimple(`So... it's you, huh?\r\n\r\nAnother rat trying to start shit and steal my #egod damn recipes#n?\r\n\r\n#rThere's a place for people like you#k.\r\n\r\n${choiceString(choices)}`);
                     break;
                 case 1:
                     switch (selection) {
@@ -209,7 +215,7 @@ function action(mode, type, selection) {
                                 "There aren't any guards to be seen around here, so maybe it's best you get to the point.",
                                 "Oh, don't worry. I already took care of the guard problem while you weren't looking. (twirl knife in hand)"
                             ];
-                            cm.sendSimple("#e#rAHAHAHAHAHAHAHAHA#k#n no.\r\n\r\nI meant the Ossyria jail. I could have my armed guards take you there #eright now#n.\r\n\r\n" + choiceString(choices));
+                            cm.sendSimple(`#e#rAHAHAHAHAHAHAHAHA#k#n no.\r\n\r\nI meant the Ossyria jail. I could have my armed guards take you there #eright now#n.\r\n\r\n${choiceString(choices)}`);
                             break;
                         case 1:
                             str++;
@@ -220,7 +226,7 @@ function action(mode, type, selection) {
                                 "Don't bluff me, boy. I know what you're hiding.",
                                 "(invisibly finger the knife under your sleeve)"
                             ];
-                            cm.sendSimple("Alone, you say?\r\n\r\nPerhaps that's so. Why don't you try me? I see the anger in your eyes.\r\n\r\nCome at me, big boy.\r\n\r\n" + choiceString(choices));
+                            cm.sendSimple(`Alone, you say?\r\n\r\nPerhaps that's so. Why don't you try me? I see the anger in your eyes.\r\n\r\nCome at me, big boy.\r\n\r\n${choiceString(choices)}`);
                             break;
                         case 2:
                             int++;
@@ -231,7 +237,7 @@ function action(mode, type, selection) {
                                 "We stole 25, actually.",
                                 "And I'll steal many more with my two hands if you don't stop me."
                             ];
-                            cm.sendSimple("Oh, #edid#n you, now?\r\n\r\n#emakes a mocking impression#n\r\n\r\nOh, no! Whatever shall I do? These rats have taken a whole #eDOZEN#n of my recipes!!\r\n\r\n" + choiceString(choices));
+                            cm.sendSimple(`Oh, #edid#n you, now?\r\n\r\n#emakes a mocking impression#n\r\n\r\nOh, no! Whatever shall I do? These rats have taken a whole #eDOZEN#n of my recipes!!\r\n\r\n${choiceString(choices)}`);
                             break;
                         case 3:
                             dex++;
@@ -242,7 +248,7 @@ function action(mode, type, selection) {
                                 "So long as the numbers are against you.",
                                 "Oh, I'll show you 'rogue bastard.' (ready self)"
                             ];
-                            cm.sendSimple("Oh, believe me. I am equally tired of your antics, you rogue #ebastards#n.\r\n\r\nThe only difference is that #rone of us is determined to end this whole thing right here and now#k.\r\n\r\n" + choiceString(choices));
+                            cm.sendSimple(`Oh, believe me. I am equally tired of your antics, you rogue #ebastards#n.\r\n\r\nThe only difference is that #rone of us is determined to end this whole thing right here and now#k.\r\n\r\n${choiceString(choices)}`);
                             break;
                         default:
                             cm.dispose();
@@ -288,9 +294,9 @@ function action(mode, type, selection) {
                     if (dex > 0) {
                         finalChoices.push(choices[3]);
                     }
-                    cm.sendSimple("Ohohohohoho. Fine. Fine.\r\n\r\nI know perfectly well #rwhere this is going#k...\r\n\r\n#ereaches for something on the inside of his coat#n\r\n\r\n" + choiceString(finalChoices));
+                    cm.sendSimple(`Ohohohohoho. Fine. Fine.\r\n\r\nI know perfectly well #rwhere this is going#k...\r\n\r\n#ereaches for something on the inside of his coat#n\r\n\r\n${choiceString(finalChoices)}`);
                     break;
-                case 3:
+                case 3: {
                     const finalChoice = finalChoices[selection];
                     let stat, statType;
                     switch (finalChoice) {
@@ -322,33 +328,31 @@ function action(mode, type, selection) {
 
                     if (totalRoll >= upperThresh) {
                         const buff = getBuff();
-                        pq.getPlayers().forEach(function(player) {
-                            buff.applyTo(player);
-                        });
+                        pq.getPlayers().forEach(player => buff.applyTo(player));
                         switch (statType) {
                             case "luk":
                                 p.dropMessage("With incredible luck, you manage to grab The Chef's walkie-talkie and smash it on the ground before he can recoil. Hopefully this cripples The Chef's ability to summon reinforcements.");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("Through unexpected chance, your leader has given your party the upper hand. You have +100 weapon and magic attack.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("Through unexpected chance, your leader has given your party the upper hand. You have +100 weapon and magic attack.")
+                                );
                                 break;
                             case "str":
                                 p.dropMessage("With your physical prowess, you manage to cripple The Chef as he calls for reinforcements.");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("By crippling The Chef, your leader has given your party the upper hand. You have +100 weapon and magic attack.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("By crippling The Chef, your leader has given your party the upper hand. You have +100 weapon and magic attack.")
+                                );
                                 break;
                             case "int":
                                 p.dropMessage("With your knowlege of incantations, you manage to disrupt The Chef's summoning magic and give your party the upper hand.");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("By disrupting The Chef's magic, your leader has given your party the upper hand. You have +100 weapon and magic attack.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("By disrupting The Chef's magic, your leader has given your party the upper hand. You have +100 weapon and magic attack.")
+                                );
                                 break;
                             case "dex":
                                 p.dropMessage("With a single adroit motion, you hit the unknown item in the dead center with your knife. The Chef looks shocked as he realizes what you've done.");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("By skewering one of The Chef's special items, your leader has given your party the upper hand. You have +100 weapon and magic attack.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("By skewering one of The Chef's special items, your leader has given your party the upper hand. You have +100 weapon and magic attack.")
+                                );
                                 break;
                         }
                         pq.addPoints(75);
@@ -371,42 +375,45 @@ function action(mode, type, selection) {
                         switch (statType) {
                             case "luk":
                                 p.dropMessage("Oh no! It seems luck was not on your side -- that thing you reached for was a canister of noxious gas! Your whole party is affected.");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("Through unexpected chance, your leader has lost the upper hand. You are affected by noxious gas!");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("Through unexpected chance, your leader has lost the upper hand. You are affected by noxious gas!")
+                                );
                                 break;
                             case "str":
                                 p.dropMessage("The Chef anticipated your strike, and with a lack of strength you only manage to get yourself thrown backwards into the rest of your party members!");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("Your leader has been physically defeated, and thrown backwards right on top of you and your other party members! You are left crushed while you and your party members get back up.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("Your leader has been physically defeated, and thrown backwards right on top of you and your other party members! You are left crushed while you and your party members get back up.")
+                                );
                                 break;
                             case "int":
                                 p.dropMessage("Oh no! It seems you weren't adept enough in incantations at all -- you botch your counter-incantation and manage to curse your entire party on accident!");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("Your party leader has botched an incantation. You and your party members are cursed!");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("Your party leader has botched an incantation. You and your party members are cursed!")
+                                );
                                 break;
                             case "dex":
                                 p.dropMessage("The Chef anticipated your strike, and with all your clumsiness you only manage to get yourself thrown backwards into the rest of your party members!");
-                                pq.getPlayers().forEach(function(player) {
-                                    player.dropMessage("Your leader has been out-maneuvered, and thrown backwards right on top of you and your other party members! You are left crushed while you and your party members get back up.");
-                                });
+                                pq.getPlayers().forEach(player =>
+                                    player.dropMessage("Your leader has been out-maneuvered, and thrown backwards right on top of you and your other party members! You are left crushed while you and your party members get back up.")
+                                );
                                 break;
                         }
-                        pq.getPlayers().forEach(function(player) {
+                        pq.getPlayers().forEach(player => {
                             player.giveDebuff(120, 12, 9 * 1000); // Seal
                             player.giveDebuff(128, 6, 3 * 1000); // Seduce
                         });
-                        tMan.schedule(function() {
-                            pq.getPlayers().forEach(function(player) {
-                                player.giveDebuff(123, 13, 2 * 1000); // Stun
-                            });
-                        }, 3 * 1000 + 100);
+                        tMan.schedule(
+                            () =>
+                                pq.getPlayers().forEach(player =>
+                                    player.giveDebuff(123, 13, 2 * 1000) // Stun
+                                ),
+                            3 * 1000 + 100
+                        );
                         pq.addPoints(-75);
                     }
                     mi.invokeMethod("startFight");
                     break;
+                }
                 default:
                     cm.dispose();
                     return;
@@ -416,11 +423,7 @@ function action(mode, type, selection) {
 }
 
 function choiceString(choices) {
-    const selections = choices.map(function(s, i) {
-        return "#L" + i + "#" + s + "#l";
-    });
-    selections.fisherYates();
-    return selections.join("\r\n");
+    return choices.map((s, i) => `#L${i}#${s}#l`).fisherYates().join("\r\n");
 }
 
 function getBuff() {
@@ -430,9 +433,7 @@ function getBuff() {
 }
 
 function multiPrizeConvert(prize) {
-    if (prize[0] < multiPrizes.length) {
-        const multiPrize = multiPrizes[prize[0]];
-        return multiPrize[Math.floor(Math.random() * multiPrize.length)];
-    }
-    return prize;
+    return prize[0] < multiPrizes.length ?
+               chooseRandom(multiPrizes[prize[0]]) :
+               prize;
 }
